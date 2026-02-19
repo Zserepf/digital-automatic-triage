@@ -264,6 +264,65 @@ document.addEventListener('click', (e) => {
 });
 
 async function showSOSConfirmation() {
+    // Fetch student profile to get pre-registered building + room
+    let locationData = {};
+    try {
+        const result = await AuthService.getUserData(firebase.auth().currentUser?.uid);
+        const profile = result.data?.profile || {};
+        locationData = {
+            building: profile.building || '',
+            room: profile.room || '',
+            section: profile.section || ''
+        };
+    } catch (_) {}
+
+    const buildingLine = locationData.building
+        ? `<div style="font-size:0.9rem; color:#fff; opacity:0.9; margin-bottom:4px;">📍 ${locationData.building}</div>`
+        : '';
+    const roomLine = locationData.room
+        ? `<div style="font-size:1rem; font-weight:700; color:#fff; margin-bottom:2px;">${locationData.room}</div>`
+        : '';
+    const secLine = locationData.section
+        ? `<div style="font-size:0.85rem; color:#fff; opacity:0.8; margin-bottom:16px;">Section: ${locationData.section}</div>`
+        : '<div style="margin-bottom:16px;"></div>';
+
+    const backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop';
+    backdrop.innerHTML = `
+        <div class="modal" style="text-align: center; max-width: 360px; width: 90%;">
+            <div style="font-size: 64px; margin-bottom: 8px;">🚨</div>
+            <h2 style="color: var(--color-emergency); margin-bottom: 8px; font-size: 1.5rem;">SCT 911 EMERGENCY</h2>
+            <p style="color: var(--color-text-secondary); font-size: var(--font-size-sm); margin-bottom: 16px;">
+                Clinic staff will be dispatched to your location:
+            </p>
+            ${buildingLine}${roomLine}${secLine}
+            <div style="display: flex; gap: 12px;">
+                <button class="btn btn--secondary btn--full" id="sos-cancel">Cancel</button>
+                <button class="btn btn--danger btn--full" id="sos-confirm">
+                    <span class="material-icons-round">warning</span>
+                    SEND ALERT
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(backdrop);
+
+    document.getElementById('sos-cancel').addEventListener('click', () => backdrop.remove());
+    document.getElementById('sos-confirm').addEventListener('click', async () => {
+        backdrop.remove();
+        Utils.showLoading();
+        const result = await EmergencyService.triggerAlert(locationData);
+        Utils.hideLoading();
+
+        if (result.success) {
+            Utils.showToast('🚨 Emergency alert sent! Help is on the way.', 'success');
+        } else {
+            Utils.showToast('Failed to send alert. Please call the clinic directly.', 'error');
+        }
+    });
+}
+
+async function _UNUSED_showSOSConfirmation_withPicker() {
     const ROOMS = {
         'St. Catherine Building': [
             'Room 201 - Grade 1 Joy', 'Room 202 - Grade 1 Peace', 'Room 203 - Grade 1 Piety',

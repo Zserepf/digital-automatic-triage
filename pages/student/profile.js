@@ -41,6 +41,14 @@ export function renderStudentProfile(container) {
                     <span class="profile-info-value">${profile.section || 'N/A'}</span>
                 </div>
                 <div class="profile-info-item">
+                    <span class="profile-info-label">Building</span>
+                    <span class="profile-info-value">${profile.building || 'N/A'}</span>
+                </div>
+                <div class="profile-info-item">
+                    <span class="profile-info-label">Room</span>
+                    <span class="profile-info-value">${profile.room || 'N/A'}</span>
+                </div>
+                <div class="profile-info-item">
                     <span class="profile-info-label">Blood Type</span>
                     <span class="profile-info-value">${profile.bloodType || 'N/A'}</span>
                 </div>

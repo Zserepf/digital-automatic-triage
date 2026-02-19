@@ -37,6 +37,8 @@ const AuthService = {
                     lastName: userData.lastName || '',
                     studentId: userData.studentId || '',
                     section: userData.section || '',
+                    building: userData.building || '',
+                    room: userData.room || '',
                     bloodType: userData.bloodType || '',
                     allergies: userData.allergies || [],
                     emergencyContacts: userData.emergencyContacts || []
@@ -368,8 +370,8 @@ const EmergencyService = {
                 userId: auth.currentUser.uid,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                 location: {
-                    building: locationData.building || '',
-                    room: locationData.room || ''
+                    building: locationData.building || profile.building || '',
+                    room: locationData.room || profile.room || ''
                 },
                 studentInfo: {
                     name: `${profile.firstName || ''} ${profile.lastName || ''}`.trim(),
