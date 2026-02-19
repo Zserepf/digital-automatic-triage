@@ -433,11 +433,13 @@ const FollowUpService = {
                 userId: followUpData.userId || auth.currentUser.uid,
                 scheduledDate: followUpData.scheduledDate,
                 status: 'scheduled',
+                feelingScale: followUpData.feelingScale || 0,
+                studentNote: followUpData.studentNote || '',
                 recoverySurvey: {
                     completed: false,
-                    feelingScale: 0,
+                    feelingScale: followUpData.feelingScale || 0,
                     symptomsResolved: false,
-                    additionalNotes: ''
+                    additionalNotes: followUpData.studentNote || ''
                 },
                 needsAnotherFollowUp: false
             });
@@ -475,6 +477,32 @@ const FollowUpService = {
 
             const followUps = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             return { success: true, data: followUps };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    },
+
+    // Get all follow-ups (clinic staff)
+    async getAllForClinic() {
+        try {
+            const snapshot = await db.collection('follow_ups')
+                .orderBy('scheduledDate', 'desc')
+                .get();
+            const followUps = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            return { success: true, data: followUps };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    },
+
+    // Confirm / update a follow-up (clinic staff)
+    async confirm(followUpId, notes = '') {
+        try {
+            await db.collection('follow_ups').doc(followUpId).update({
+                status: 'confirmed',
+                clinicNotes: notes
+            });
+            return { success: true };
         } catch (error) {
             return { success: false, error: error.message };
         }

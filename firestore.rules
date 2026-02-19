@@ -45,7 +45,10 @@ service cloud.firestore {
         resource.data.userId == request.auth.uid ||
         isClinicStaff()
       );
-      allow update: if request.auth != null && isClinicStaff();
+      allow update: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        isClinicStaff()
+      );
     }
 
     // Emergency alerts
@@ -59,7 +62,7 @@ service cloud.firestore {
 
     // Follow-ups (collection name: follow_ups)
     match /follow_ups/{followUpId} {
-      allow create: if request.auth != null && isClinicStaff();
+      allow create: if request.auth != null;
       allow read: if request.auth != null && (
         resource.data.userId == request.auth.uid ||
         isClinicStaff()

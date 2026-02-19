@@ -81,15 +81,29 @@ export async function renderClinicDashboard(container) {
                         <div class="spinner" style="margin: 0 auto;"></div>
                     </div>
                 </div>
+
+                <!-- Recovery Follow-up Requests -->
+                <h2 style="margin-top: 32px; margin-bottom: 16px;">
+                    <span class="material-icons-round" style="vertical-align:middle; color:var(--color-moderate);">healing</span>
+                    Recovery Follow-up Requests
+                </h2>
+                <div id="followup-list">
+                    <div style="text-align: center; padding: 24px;">
+                        <div class="spinner" style="margin: 0 auto;"></div>
+                    </div>
+                </div>
             </div>
         </div>
     `;
 
     // Listen for real-time queue updates
-    AppointmentService.onQueueUpdate((appointments) => {
+    AppointmentService.onQueueUpdate(async (appointments) => {
         updateStats(appointments);
-        renderQueueList(appointments);
+        await renderQueueList(appointments);
     });
+
+    // Load follow-up requests
+    loadFollowUps();
 
     // Listen for emergency alerts
     EmergencyService.onEmergencyAlert((emergencies) => {
@@ -135,7 +149,7 @@ function updateStats(appointments) {
     if (eEl) eEl.textContent = emergency;
 }
 
-function renderQueueList(appointments) {
+async function renderQueueList(appointments) {
     const queueList = document.getElementById('queue-list');
     if (!queueList) return;
 
@@ -155,6 +169,14 @@ function renderQueueList(appointments) {
         return;
     }
 
+    // Batch-load student names
+    const userIds = [...new Set(active.map(a => a.userId).filter(Boolean))];
+    let userMap = {};
+    if (userIds.length > 0) {
+        const usersResult = await AuthService.getUsersByIds(userIds);
+        if (usersResult.success) userMap = usersResult.data;
+    }
+
     queueList.innerHTML = `
         <table class="queue-table">
             <thead>
@@ -169,22 +191,25 @@ function renderQueueList(appointments) {
             </thead>
             <tbody>
                 ${active.map(appointment => {
-                    const severityColors = {
-                        emergency: 'var(--color-emergency)',
-                        severe: 'var(--color-severe)',
-                        moderate: 'var(--color-moderate)',
-                        minor: 'var(--color-normal)'
-                    };
+                    const user = userMap[appointment.userId];
+                    const profile = user?.profile || {};
+                    const name = profile.firstName
+                        ? `${profile.firstName} ${profile.lastName || ''}`.trim()
+                        : appointment.userId || 'Unknown';
+                    const section = profile.section ? ` — ${profile.section}` : '';
 
                     return `
                         <tr>
                             <td><strong>${appointment.queueNumber || '-'}</strong></td>
                             <td>
-                                <span class="badge badge--${appointment.severity === 'emergency' ? 'emergency' : appointment.severity === 'severe' ? 'emergency' : appointment.severity === 'moderate' ? 'waiting' : 'completed'}">
+                                <span class="badge badge--${appointment.severity === 'emergency' || appointment.severity === 'severe' ? 'emergency' : appointment.severity === 'moderate' ? 'waiting' : 'completed'}">
                                     ${(appointment.severity || 'minor').toUpperCase()}
                                 </span>
                             </td>
-                            <td>${appointment.userId || 'Unknown'}</td>
+                            <td>
+                                <div style="font-weight:600;">${name}</div>
+                                <div style="font-size:0.8rem; color:var(--color-text-hint);">${section}</div>
+                            </td>
                             <td>${Utils.formatTime(appointment.createdAt)}</td>
                             <td>${Utils.getStatusBadge(appointment.status)}</td>
                             <td>
@@ -203,6 +228,73 @@ function renderQueueList(appointments) {
 // Global function for viewing patient
 window.viewPatient = function(appointmentId, userId) {
     Router.navigate('/clinic/patient', { appointmentId, userId });
+};
+
+async function loadFollowUps() {
+    const list = document.getElementById('followup-list');
+    if (!list) return;
+
+    const result = await FollowUpService.getAllForClinic();
+    const followUps = result.success ? result.data.filter(f => f.status === 'scheduled') : [];
+
+    if (followUps.length === 0) {
+        list.innerHTML = `
+            <div style="color: var(--color-text-hint); padding: 16px 0; font-size: var(--font-size-sm);">
+                No pending follow-up requests.
+            </div>`;
+        return;
+    }
+
+    // Batch-load student names
+    const userIds = [...new Set(followUps.map(f => f.userId).filter(Boolean))];
+    let userMap = {};
+    if (userIds.length > 0) {
+        const usersResult = await AuthService.getUsersByIds(userIds);
+        if (usersResult.success) userMap = usersResult.data;
+    }
+
+    const FEELING_EMOJI = { 1: '😞 Worse', 2: '😕 Poor', 3: '😐 Same', 4: '🙂 Better', 5: '😄 Recovered' };
+
+    list.innerHTML = followUps.map(f => {
+        const user = userMap[f.userId];
+        const profile = user?.profile || {};
+        const name = profile.firstName ? `${profile.firstName} ${profile.lastName || ''}`.trim() : f.userId;
+        const section = profile.section || '';
+        const feeling = FEELING_EMOJI[f.feelingScale] || '—';
+        const note = f.studentNote || '';
+        const scheduled = Utils.formatDate(f.scheduledDate);
+
+        return `
+            <div class="card card--bordered" style="margin-bottom: 12px; padding: 16px;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+                    <div>
+                        <div style="font-weight:700; font-size:var(--font-size-base);">${name}</div>
+                        ${section ? `<div style="font-size:var(--font-size-sm); color:var(--color-text-hint);">${section}</div>` : ''}
+                        <div style="margin-top:6px; font-size:var(--font-size-sm);">
+                            <span style="font-weight:600;">Feeling:</span> ${feeling}
+                        </div>
+                        ${note ? `<div style="font-size:var(--font-size-sm); color:var(--color-text-secondary); margin-top:4px;">
+                            <span class="material-icons-round" style="font-size:14px; vertical-align:middle;">notes</span>
+                            "${note}"
+                        </div>` : ''}
+                        <div style="font-size:var(--font-size-xs); color:var(--color-text-hint); margin-top:4px;">
+                            Requested for: ${scheduled}
+                        </div>
+                    </div>
+                    <button class="btn btn--primary btn--sm" onclick="confirmFollowUp('${f.id}', '${f.userId}')">
+                        ✅ Confirm
+                    </button>
+                </div>
+            </div>`;
+    }).join('');
+}
+
+window.confirmFollowUp = async function(followUpId, userId) {
+    Utils.showLoading();
+    await FollowUpService.confirm(followUpId);
+    Utils.hideLoading();
+    Utils.showToast('Follow-up confirmed! Student will be notified.', 'success');
+    loadFollowUps();
 };
 
 // Shared sidebar component

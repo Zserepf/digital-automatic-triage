@@ -276,15 +276,20 @@ async function showSOSConfirmation() {
         };
     } catch (_) {}
 
-    const buildingLine = locationData.building
-        ? `<div style="font-size:0.9rem; color:#fff; opacity:0.9; margin-bottom:4px;">📍 ${locationData.building}</div>`
-        : '';
-    const roomLine = locationData.room
-        ? `<div style="font-size:1rem; font-weight:700; color:#fff; margin-bottom:2px;">${locationData.room}</div>`
-        : '';
-    const secLine = locationData.section
-        ? `<div style="font-size:0.85rem; color:#fff; opacity:0.8; margin-bottom:16px;">Section: ${locationData.section}</div>`
-        : '<div style="margin-bottom:16px;"></div>';
+    const locationBlock = (locationData.building || locationData.room || locationData.section)
+        ? `<div style="
+                background: #fff3f3;
+                border: 2px solid var(--color-emergency);
+                border-radius: 12px;
+                padding: 12px 16px;
+                margin-bottom: 20px;
+                text-align: left;
+            ">
+                ${locationData.building ? `<div style="font-size:0.82rem; color:#666; margin-bottom:2px;">📍 ${locationData.building}</div>` : ''}
+                ${locationData.room ? `<div style="font-size:1.05rem; font-weight:700; color:#cc0000; margin-bottom:2px;">${locationData.room}</div>` : ''}
+                ${locationData.section ? `<div style="font-size:0.85rem; color:#333;">Section: ${locationData.section}</div>` : ''}
+           </div>`
+        : `<div style="color:#999; font-size:0.85rem; margin-bottom:16px;">(Location not set — update your profile)</div>`;
 
     const backdrop = document.createElement('div');
     backdrop.className = 'modal-backdrop';
@@ -292,10 +297,10 @@ async function showSOSConfirmation() {
         <div class="modal" style="text-align: center; max-width: 360px; width: 90%;">
             <div style="font-size: 64px; margin-bottom: 8px;">🚨</div>
             <h2 style="color: var(--color-emergency); margin-bottom: 8px; font-size: 1.5rem;">SCT 911 EMERGENCY</h2>
-            <p style="color: var(--color-text-secondary); font-size: var(--font-size-sm); margin-bottom: 16px;">
+            <p style="color: var(--color-text-secondary); font-size: var(--font-size-sm); margin-bottom: 12px;">
                 Clinic staff will be dispatched to your location:
             </p>
-            ${buildingLine}${roomLine}${secLine}
+            ${locationBlock}
             <div style="display: flex; gap: 12px;">
                 <button class="btn btn--secondary btn--full" id="sos-cancel">Cancel</button>
                 <button class="btn btn--danger btn--full" id="sos-confirm">

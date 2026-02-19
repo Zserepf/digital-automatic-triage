@@ -124,11 +124,26 @@ export async function renderPatientView(container, params = {}) {
 
             <!-- Action -->
             ${params.appointmentId ? `
-            <button class="btn btn--primary" onclick="openConsultationForm('${params.appointmentId}', '${userId}')">
+            <button class="btn btn--primary btn--lg" id="start-consultation-btn" style="width:100%; margin-top: 8px;">
                 <span class="material-icons-round">edit_note</span>
                 Start Consultation
             </button>` : ''}
         `;
+
+        // Define the navigation function locally so it works whether queue.js loaded or not
+        window.openConsultationForm = function(appointmentId, userId) {
+            Router.navigate('/clinic/consultation', { appointmentId, userId });
+        };
+
+        const startBtn = document.getElementById('start-consultation-btn');
+        if (startBtn) {
+            startBtn.addEventListener('click', () => {
+                Router.navigate('/clinic/consultation', {
+                    appointmentId: params.appointmentId,
+                    userId
+                });
+            });
+        }
     } catch (error) {
         content.innerHTML = `
             <div style="text-align: center; padding: 48px; color: var(--color-emergency);">

@@ -132,14 +132,19 @@ export async function renderStudentRecovery(container) {
                     </div>
                 </div>
 
-                <div style="margin-top: 16px; display: flex; gap: 12px;">
+                <div class="input-group" style="margin-top: 16px;">
+                    <label for="recovery-notes" style="font-size:var(--font-size-sm); color:var(--color-text-secondary);">Additional notes for the clinic (optional)</label>
+                    <textarea id="recovery-notes" class="input-field" rows="2" placeholder="Describe any remaining symptoms or concerns..."></textarea>
+                </div>
+
+                <div style="margin-top: 12px; display: flex; gap: 12px;">
                     <button class="btn btn--secondary btn--full" id="request-followup-btn">
                         <span class="material-icons-round">event</span>
                         Request Follow-up
                     </button>
                     <button class="btn btn--success btn--full" id="mark-recovered-btn">
                         <span class="material-icons-round">done_all</span>
-                        Recovered
+                        I'm Recovered
                     </button>
                 </div>
             </div>
@@ -156,17 +161,37 @@ export async function renderStudentRecovery(container) {
             });
         });
 
+        const FEELING_LABELS = { 1: 'Worse', 2: 'Poor', 3: 'Same', 4: 'Better', 5: 'Recovered' };
+
         // Request follow-up
         document.getElementById('request-followup-btn')?.addEventListener('click', async () => {
             if (surveyRating === 0) {
-                Utils.showToast('Please rate how you feel first.', 'warning');
+                Utils.showToast('Please select how you feel first.', 'warning');
                 return;
             }
+            const notes = document.getElementById('recovery-notes')?.value.trim() || '';
             Utils.showLoading();
+
+            // Save survey result back to the consultation
+            await db.collection('consultations').doc(activeConsultation.id).update({
+                recoverySurvey: {
+                    feelingScale: surveyRating,
+                    feelingLabel: FEELING_LABELS[surveyRating] || '',
+                    notes,
+                    submittedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    requestedFollowUp: true
+                }
+            });
+
+            // Create follow-up request
             await FollowUpService.create({
                 consultationId: activeConsultation.id,
-                scheduledDate: firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 86400000))
+                userId: auth.currentUser.uid,
+                scheduledDate: firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 86400000)),
+                studentNote: notes,
+                feelingScale: surveyRating
             });
+
             Utils.hideLoading();
             Utils.showToast('Follow-up requested! The clinic will confirm your schedule.', 'success');
         });
@@ -174,14 +199,26 @@ export async function renderStudentRecovery(container) {
         // Mark as recovered
         document.getElementById('mark-recovered-btn')?.addEventListener('click', async () => {
             if (surveyRating === 0) {
-                Utils.showToast('Please rate how you feel first.', 'warning');
+                Utils.showToast('Please select how you feel first.', 'warning');
                 return;
             }
+            const notes = document.getElementById('recovery-notes')?.value.trim() || '';
             Utils.showLoading();
-            // Update consultation status
-            await db.collection('consultations').doc(activeConsultation.id).update({ status: 'completed' });
+
+            // Save survey result + mark consultation completed
+            await db.collection('consultations').doc(activeConsultation.id).update({
+                status: 'completed',
+                recoverySurvey: {
+                    feelingScale: surveyRating,
+                    feelingLabel: FEELING_LABELS[surveyRating] || '',
+                    notes,
+                    submittedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    requestedFollowUp: false
+                }
+            });
+
             Utils.hideLoading();
-            Utils.showToast('Great! Marked as recovered.', 'success');
+            Utils.showToast('Great! Your recovery has been recorded. Stay healthy! 💪', 'success');
             renderStudentRecovery(container);
         });
 
