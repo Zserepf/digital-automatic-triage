@@ -21,7 +21,7 @@ const Auth = {
                 this.currentUser = null;
                 this.userData = null;
                 // Redirect to login if not on auth pages
-                const authPages = ['/login', '/register', '/forgot-password'];
+                const authPages = ['/login', '/register', '/forgot-password', '/register-staff'];
                 if (!authPages.includes(Router.currentRoute)) {
                     Router.navigate('/login');
                 }
@@ -33,7 +33,7 @@ const Auth = {
     _redirectBasedOnRole() {
         const role = this.userData?.role;
         const currentRoute = Router.currentRoute;
-        const authPages = ['/login', '/register', '/forgot-password', '/'];
+        const authPages = ['/login', '/register', '/forgot-password', '/register-staff', '/'];
 
         if (authPages.includes(currentRoute)) {
             if (role === 'student') {

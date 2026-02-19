@@ -224,6 +224,11 @@ Router.register('/forgot-password', async (container) => {
     renderForgotPasswordPage(container);
 });
 
+Router.register('/register-staff', async (container) => {
+    const { renderRegisterStaffPage } = await import('/pages/auth/register-staff.js');
+    renderRegisterStaffPage(container);
+});
+
 // Student pages
 Router.register('/student/home', async (container) => {
     const { renderStudentHome } = await import('/pages/student/home.js');

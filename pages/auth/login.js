@@ -28,6 +28,7 @@ export function renderLoginPage(container) {
                     <div class="auth-links">
                         <a data-route="/forgot-password" class="auth-link">Forgot Password?</a>
                         <a data-route="/register" class="auth-link">Don't have an account? Register</a>
+                        <a data-route="/register-staff" class="auth-link" style="margin-top: 4px; opacity: 0.75; font-size: 0.8rem;">Clinic Staff? Register here</a>
                     </div>
                 </form>
             </div>
