@@ -94,8 +94,11 @@ export async function renderStudentRecovery(container) {
                                     </div>
                                     ${p.dosage ? `<div style="font-size: var(--font-size-sm); color: var(--color-primary); font-weight: 600; margin-top: 2px;">
                                         <span class="material-icons-round" style="font-size: 13px; vertical-align: middle;">schedule</span>
-                                        ${p.dosage}
-                                    </div>` : ''}
+                                        ${p.dosage} · ${p.frequencyLabel || 'Every ' + (p.frequencyHours || 8) + ' hours'}
+                                    </div>` : `<div style="font-size: var(--font-size-sm); color: var(--color-primary); font-weight: 600; margin-top: 2px;">
+                                        <span class="material-icons-round" style="font-size: 13px; vertical-align: middle;">schedule</span>
+                                        ${p.frequencyLabel || 'Every ' + (p.frequencyHours || 8) + ' hours'}
+                                    </div>`}
                                     ${p.instructions ? `<div style="font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-top: 4px; font-style: italic;">
                                         ${p.instructions}
                                     </div>` : ''}
@@ -123,7 +126,7 @@ export async function renderStudentRecovery(container) {
                         <div class="med-timer-item" data-med-idx="${idx}">
                             <div style="flex: 1; min-width: 0;">
                                 <div class="med-timer-name">${p.medicine}</div>
-                                <div class="med-timer-dosage">${p.dosage || 'As prescribed'}</div>
+                                <div class="med-timer-dosage">${p.dosage || 'As prescribed'} · ${p.frequencyLabel || 'Every ' + (p.frequencyHours || 8) + 'h'}</div>
                             </div>
                             <div id="med-timer-status-${idx}" style="display: flex; align-items: center; gap: 8px;">
                                 <span class="med-timer-countdown" id="med-countdown-${idx}">--</span>
@@ -440,19 +443,20 @@ export async function renderStudentRecovery(container) {
                 }
             }
 
-            // Parse interval from dosage string (e.g., "every 8 hours" → 8)
-            function parseInterval(dosage) {
-                const match = (dosage || '').match(/every\s*(\d+)\s*h/i);
+            // Get interval from explicit frequency field, fallback to parsing dosage text
+            function parseInterval(p) {
+                if (p.frequencyHours) return p.frequencyHours;
+                const match = (p.dosage || '').match(/every\s*(\d+)\s*h/i);
                 if (match) return parseInt(match[1]);
-                if (/3\s*times/i.test(dosage)) return 8;
-                if (/twice|2\s*times/i.test(dosage)) return 12;
-                if (/once/i.test(dosage)) return 24;
+                if (/3\s*times/i.test(p.dosage)) return 8;
+                if (/twice|2\s*times/i.test(p.dosage)) return 12;
+                if (/once/i.test(p.dosage)) return 24;
                 return 8; // default every 8 hours
             }
 
             prescriptions.forEach((p, idx) => {
                 if (!timers[idx]) {
-                    timers[idx] = { intervalHours: parseInterval(p.dosage), lastTaken: null };
+                    timers[idx] = { intervalHours: parseInterval(p), lastTaken: null };
                 }
                 renderTimerState(idx);
 

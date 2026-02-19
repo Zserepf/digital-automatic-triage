@@ -106,16 +106,16 @@ const AuthService = {
     async getUsersByIds(uids) {
         try {
             const uniqueIds = [...new Set(uids)].filter(Boolean);
-            if (uniqueIds.length === 0) return {};
+            if (uniqueIds.length === 0) return { success: true, data: {} };
             const promises = uniqueIds.map(uid => db.collection('users').doc(uid).get());
             const docs = await Promise.all(promises);
             const map = {};
             docs.forEach(doc => {
                 if (doc.exists) map[doc.id] = { id: doc.id, ...doc.data() };
             });
-            return map;
+            return { success: true, data: map };
         } catch (error) {
-            return {};
+            return { success: false, data: {} };
         }
     },
 

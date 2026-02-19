@@ -36,7 +36,17 @@ export function renderConsultationForm(container, params = {}) {
                                 <input type="text" class="input-field" id="rx-medicine" placeholder="Medicine name">
                             </div>
                             <div class="input-group" style="margin-bottom: 0;">
-                                <input type="text" class="input-field" id="rx-dosage" placeholder="Dosage">
+                                <input type="text" class="input-field" id="rx-dosage" placeholder="Dosage (e.g. 500mg)">
+                            </div>
+                            <div class="input-group" style="margin-bottom: 0;">
+                                <select class="input-field" id="rx-frequency">
+                                    <option value="" disabled selected>Frequency</option>
+                                    <option value="4">Every 4 hours</option>
+                                    <option value="6">Every 6 hours</option>
+                                    <option value="8">Every 8 hours (3x daily)</option>
+                                    <option value="12">Every 12 hours (2x daily)</option>
+                                    <option value="24">Once daily</option>
+                                </select>
                             </div>
                             <div class="input-group" style="margin-bottom: 0;">
                                 <input type="text" class="input-field" id="rx-instructions" placeholder="Instructions">
@@ -86,6 +96,9 @@ export function renderConsultationForm(container, params = {}) {
     document.getElementById('add-rx-btn').addEventListener('click', () => {
         const medicine = document.getElementById('rx-medicine').value.trim();
         const dosage = document.getElementById('rx-dosage').value.trim();
+        const frequencyEl = document.getElementById('rx-frequency');
+        const frequencyHours = parseInt(frequencyEl.value) || 8;
+        const frequencyLabel = frequencyEl.options[frequencyEl.selectedIndex]?.text || 'Every 8 hours';
         const instructions = document.getElementById('rx-instructions').value.trim();
 
         if (!medicine) {
@@ -93,12 +106,13 @@ export function renderConsultationForm(container, params = {}) {
             return;
         }
 
-        prescriptions.push({ medicine, dosage, instructions });
+        prescriptions.push({ medicine, dosage, instructions, frequencyHours, frequencyLabel });
         renderPrescriptionList();
 
         // Clear inputs
         document.getElementById('rx-medicine').value = '';
         document.getElementById('rx-dosage').value = '';
+        frequencyEl.selectedIndex = 0;
         document.getElementById('rx-instructions').value = '';
     });
 
@@ -108,6 +122,7 @@ export function renderConsultationForm(container, params = {}) {
             <div class="prescription-item">
                 <div>
                     <strong>${rx.medicine}</strong> — ${rx.dosage || 'N/A'}
+                    <br><span style="color: var(--color-primary); font-weight: 600; font-size: var(--font-size-xs);">${rx.frequencyLabel || 'Every 8 hours'}</span>
                     ${rx.instructions ? `<br><span style="color: var(--color-text-secondary);">${rx.instructions}</span>` : ''}
                 </div>
                 <button type="button" class="btn btn--ghost btn--sm" onclick="removePrescription(${i})">
