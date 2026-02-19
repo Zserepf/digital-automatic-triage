@@ -32,13 +32,16 @@ export async function renderPatientView(container, params = {}) {
         const userId = params.userId;
         if (!userId) throw new Error('No patient specified');
 
-        const userResult = await AuthService.getUserData(userId);
-        const logsResult = await SymptomLogService.getAll();
-        const consultationsResult = await ConsultationService.getByStudent(userId);
+        // Load all data in parallel with targeted queries
+        const [userResult, logsResult, consultationsResult] = await Promise.all([
+            AuthService.getUserData(userId),
+            SymptomLogService.getByUserId(userId),
+            ConsultationService.getByStudent(userId)
+        ]);
 
         const userData = userResult.success ? userResult.data : {};
         const profile = userData.profile || {};
-        const logs = (logsResult.success ? logsResult.data : []).filter(l => l.userId === userId);
+        const logs = logsResult.success ? logsResult.data : [];
         const consultations = consultationsResult.success ? consultationsResult.data : [];
 
         const initials = ((profile.firstName?.[0] || '') + (profile.lastName?.[0] || '')).toUpperCase() || '?';
@@ -88,26 +91,43 @@ export async function renderPatientView(container, params = {}) {
             <!-- Past Consultations -->
             <h3 style="margin-bottom: 12px;">Consultation History</h3>
             <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">
-                ${consultations.map(c => `
+                ${consultations.length > 0 ? consultations.map(c => {
+                    const prescriptions = c.prescriptions || [];
+                    return `
                     <div class="card card--bordered">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                             <span style="font-weight: 600;">${Utils.formatDate(c.date)}</span>
                             ${Utils.getStatusBadge(c.status)}
                         </div>
-                        <div style="font-size: var(--font-size-sm);">
-                            <strong>Diagnosis:</strong> ${c.diagnosis || 'N/A'}<br>
-                            <strong>Prescriptions:</strong> ${(c.prescriptions || []).map(p => p.medicine).join(', ') || 'None'}<br>
-                            ${c.recommendations ? `<strong>Notes:</strong> ${c.recommendations}` : ''}
+                        <div style="font-size: var(--font-size-sm); margin-bottom: 8px;">
+                            <strong>Diagnosis:</strong> ${c.diagnosis || 'N/A'}
                         </div>
-                    </div>
-                `).join('') || '<p style="color: var(--color-text-hint);">No consultations</p>'}
+                        ${prescriptions.length > 0 ? `
+                            <div style="background: #f0f7ff; border-radius: 8px; padding: 8px; margin-bottom: 8px;">
+                                <div style="font-size: var(--font-size-xs); font-weight: 700; color: var(--color-primary); margin-bottom: 4px;">
+                                    <span class="material-icons-round" style="font-size: 13px; vertical-align: middle;">medication</span>
+                                    PRESCRIPTIONS
+                                </div>
+                                ${prescriptions.map(p => `
+                                    <div style="font-size: var(--font-size-sm); padding: 2px 0;">
+                                        <strong>${p.medicine}</strong>${p.dosage ? ` — ${p.dosage}` : ''}
+                                        ${p.instructions ? `<span style="color:var(--color-text-secondary);"> · ${p.instructions}</span>` : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : `<div style="font-size:var(--font-size-sm);color:var(--color-text-hint);margin-bottom:8px;">No prescriptions given</div>`}
+                        ${c.recommendations ? `<div style="font-size:var(--font-size-sm);color:var(--color-text-secondary);"><strong>Notes:</strong> ${c.recommendations}</div>` : ''}
+                        ${c.requiresFollowUp ? `<div style="font-size:var(--font-size-xs);color:var(--color-moderate);margin-top:6px;font-weight:600;">⏰ Follow-up required</div>` : ''}
+                    </div>`;
+                }).join('') : '<p style="color: var(--color-text-hint);">No consultations</p>'}
             </div>
 
             <!-- Action -->
+            ${params.appointmentId ? `
             <button class="btn btn--primary" onclick="openConsultationForm('${params.appointmentId}', '${userId}')">
                 <span class="material-icons-round">edit_note</span>
                 Start Consultation
-            </button>
+            </button>` : ''}
         `;
     } catch (error) {
         content.innerHTML = `

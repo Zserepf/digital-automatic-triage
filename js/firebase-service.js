@@ -159,6 +159,20 @@ const SymptomLogService = {
         }
     },
 
+    // Get logs for a specific user (clinic use)
+    async getByUserId(userId) {
+        try {
+            const snapshot = await db.collection('symptom_logs')
+                .where('userId', '==', userId)
+                .orderBy('timestamp', 'desc')
+                .get();
+            const logs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            return { success: true, data: logs };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    },
+
     // Get all logs (clinic staff)
     async getAll(filters = {}) {
         try {
