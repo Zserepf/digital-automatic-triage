@@ -2,70 +2,71 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users collection
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-      // Clinic staff can read any user profile
-      allow read: if request.auth != null && 
+    // Helper function to check if user is clinic staff
+    function isClinicStaff() {
+      return request.auth != null &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'clinic_staff';
     }
 
-    // Symptom logs
-    match /symptomLogs/{logId} {
+    // Users collection
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if isClinicStaff();
+    }
+
+    // Symptom logs (collection name: symptom_logs)
+    match /symptom_logs/{logId} {
       allow create: if request.auth != null;
       allow read: if request.auth != null && (
-        resource.data.studentId == request.auth.uid ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'clinic_staff'
+        resource.data.userId == request.auth.uid ||
+        isClinicStaff()
       );
-      allow update, delete: if request.auth != null && resource.data.studentId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
     // Appointments
     match /appointments/{appointmentId} {
       allow create: if request.auth != null;
       allow read: if request.auth != null && (
-        resource.data.studentId == request.auth.uid ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'clinic_staff'
+        resource.data.userId == request.auth.uid ||
+        isClinicStaff()
       );
       allow update: if request.auth != null && (
-        resource.data.studentId == request.auth.uid ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'clinic_staff'
+        resource.data.userId == request.auth.uid ||
+        isClinicStaff()
       );
-      allow delete: if request.auth != null && resource.data.studentId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
     // Consultations
     match /consultations/{consultationId} {
-      allow create: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'clinic_staff';
+      allow create: if request.auth != null && isClinicStaff();
       allow read: if request.auth != null && (
-        resource.data.studentId == request.auth.uid ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'clinic_staff'
+        resource.data.userId == request.auth.uid ||
+        isClinicStaff()
       );
-      allow update: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'clinic_staff';
+      allow update: if request.auth != null && isClinicStaff();
     }
 
     // Emergency alerts
     match /emergencies/{emergencyId} {
       allow create: if request.auth != null;
       allow read, update: if request.auth != null && (
-        resource.data.studentId == request.auth.uid ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'clinic_staff'
+        resource.data.userId == request.auth.uid ||
+        isClinicStaff()
       );
     }
 
-    // Follow-ups
-    match /followUps/{followUpId} {
-      allow create: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'clinic_staff';
+    // Follow-ups (collection name: follow_ups)
+    match /follow_ups/{followUpId} {
+      allow create: if request.auth != null && isClinicStaff();
       allow read: if request.auth != null && (
-        resource.data.studentId == request.auth.uid ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'clinic_staff'
+        resource.data.userId == request.auth.uid ||
+        isClinicStaff()
       );
       allow update: if request.auth != null && (
-        resource.data.studentId == request.auth.uid ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'clinic_staff'
+        resource.data.userId == request.auth.uid ||
+        isClinicStaff()
       );
     }
   }
