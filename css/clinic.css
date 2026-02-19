@@ -1,0 +1,260 @@
+/* ========================================
+   CLINIC-SPECIFIC STYLES
+   Digital Automatic Triage
+   ======================================== */
+
+/* ---- Dashboard Stats ---- */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-base);
+    margin-bottom: var(--space-xl);
+}
+
+.stat-card {
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--space-base);
+}
+
+.stat-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stat-card-icon .material-icons-round {
+    font-size: 24px;
+    color: white;
+}
+
+.stat-card-icon--waiting { background: var(--color-moderate); }
+.stat-card-icon--in-progress { background: var(--color-primary); }
+.stat-card-icon--completed { background: var(--color-normal); }
+.stat-card-icon--emergency { background: var(--color-emergency); }
+
+.stat-card-value {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    line-height: 1;
+}
+
+.stat-card-label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+/* ---- Queue Table (Desktop) ---- */
+.queue-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.queue-table thead th {
+    padding: var(--space-md) var(--space-base);
+    text-align: left;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-secondary);
+    background: var(--color-background);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.queue-table tbody td {
+    padding: var(--space-md) var(--space-base);
+    font-size: var(--font-size-base);
+    border-bottom: 1px solid var(--color-border);
+    vertical-align: middle;
+}
+
+.queue-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.queue-table tbody tr:hover {
+    background: var(--color-background);
+}
+
+/* ---- Patient View ---- */
+.patient-view-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-xl);
+}
+
+.patient-view-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+}
+
+.patient-view-info h2 {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+}
+
+.patient-view-meta {
+    display: flex;
+    gap: var(--space-base);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+/* ---- Consultation Form ---- */
+.consultation-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+    max-width: 640px;
+}
+
+.consultation-form .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-base);
+}
+
+.prescription-entry {
+    display: grid;
+    grid-template-columns: 2fr 1fr 2fr auto;
+    gap: var(--space-sm);
+    align-items: end;
+}
+
+.prescription-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.prescription-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md);
+    background: var(--color-background);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+}
+
+/* ---- Analytics Charts ---- */
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-lg);
+}
+
+.analytics-card {
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.analytics-card h3 {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--space-base);
+}
+
+.analytics-card--full {
+    grid-column: span 2;
+}
+
+/* ---- Period Filter ---- */
+.period-filter {
+    display: flex;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-lg);
+}
+
+.period-filter-btn {
+    padding: var(--space-sm) var(--space-base);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    background: var(--color-white);
+    border: 1.5px solid var(--color-border);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.period-filter-btn.active {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+}
+
+/* ---- Dashboard Page Header ---- */
+.clinic-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-xl);
+}
+
+.clinic-page-header h1 {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+}
+
+.clinic-page-header .date-display {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .analytics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .analytics-card--full {
+        grid-column: span 1;
+    }
+
+    .consultation-form .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .prescription-entry {
+        grid-template-columns: 1fr;
+    }
+
+    .queue-table {
+        display: block;
+        overflow-x: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}

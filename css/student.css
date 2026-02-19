@@ -1,0 +1,279 @@
+/* ========================================
+   STUDENT-SPECIFIC STYLES
+   Digital Automatic Triage
+   ======================================== */
+
+/* ---- Student Header ---- */
+.student-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-xl);
+}
+
+.student-header-greeting h1 {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+}
+
+.student-header-greeting p {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+.student-header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.student-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-base);
+}
+
+/* ---- Symptom Form ---- */
+.symptom-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+.symptom-form .form-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.symptom-form .form-section-title {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+}
+
+.symptom-form .form-section-subtitle {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+/* ---- Symptom Tags/Chips ---- */
+.symptom-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+}
+
+.symptom-chip {
+    padding: 8px 16px;
+    border-radius: var(--radius-full);
+    background: var(--color-background);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    border: 1.5px solid var(--color-border);
+    transition: all 0.2s ease;
+}
+
+.symptom-chip:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.symptom-chip.selected {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+}
+
+/* ---- Triage Result Card ---- */
+.triage-result {
+    text-align: center;
+    padding: var(--space-xl);
+}
+
+.triage-result-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin: 0 auto var(--space-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.triage-result-icon .material-icons-round {
+    font-size: 40px;
+    color: white;
+}
+
+.triage-result h2 {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--space-sm);
+}
+
+.triage-result-status {
+    margin-bottom: var(--space-xl);
+}
+
+/* ---- Queue Status Card ---- */
+.queue-status-card {
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    text-align: center;
+    box-shadow: var(--shadow-md);
+}
+
+.queue-status-card .status-label {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--space-sm);
+}
+
+.queue-status-card .purpose {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-md);
+}
+
+.queue-status-card .queue-number {
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary);
+}
+
+.queue-status-card .queue-number-label {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-hint);
+    text-transform: uppercase;
+}
+
+.queue-status-card .estimated-time {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin-top: var(--space-md);
+}
+
+.queue-status-card .student-id {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-hint);
+    margin-top: var(--space-sm);
+}
+
+/* ---- Recommendations List ---- */
+.recommendations-list {
+    text-align: left;
+    margin-top: var(--space-lg);
+}
+
+.recommendations-list h3 {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--space-md);
+}
+
+.recommendation-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+    padding: var(--space-sm) 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+.recommendation-item .material-icons-round {
+    font-size: 18px;
+    color: var(--color-normal);
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+/* ---- Recovery/Follow-up ---- */
+.recovery-checklist {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.checklist-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    background: var(--color-white);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.checklist-item .material-icons-round {
+    font-size: 24px;
+}
+
+.checklist-item.checked .material-icons-round {
+    color: var(--color-normal);
+}
+
+.checklist-item.unchecked .material-icons-round {
+    color: var(--color-border);
+}
+
+/* ---- Student Profile Card ---- */
+.profile-card {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+    color: white;
+    border-radius: var(--radius-xl);
+    padding: var(--space-xl);
+    margin-bottom: var(--space-lg);
+}
+
+.profile-card h3 {
+    font-size: var(--font-size-lg);
+    margin-bottom: var(--space-xs);
+}
+
+.profile-card p {
+    font-size: var(--font-size-sm);
+    opacity: 0.9;
+}
+
+.profile-info-section {
+    margin-top: var(--space-lg);
+}
+
+.profile-info-section h4 {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-md);
+}
+
+.profile-info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--space-sm) 0;
+    border-bottom: 1px solid var(--color-border);
+    font-size: var(--font-size-sm);
+}
+
+.profile-info-item:last-child {
+    border-bottom: none;
+}
+
+.profile-info-label {
+    color: var(--color-text-secondary);
+}
+
+.profile-info-value {
+    font-weight: var(--font-weight-medium);
+}
