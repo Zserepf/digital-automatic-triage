@@ -42,13 +42,35 @@
     <script src="/js/auth.js"></script>
     <script src="/js/app.js"></script>
 
-    <!-- Register Service Worker -->
+    <!-- Register Service Worker + Auto-Update -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(reg => console.log('SW registered:', reg.scope))
+                navigator.serviceWorker.register('/service-worker.js', { updateViaCache: 'none' })
+                    .then(reg => {
+                        console.log('SW registered:', reg.scope);
+                        // Check for updates every 60 seconds
+                        setInterval(() => reg.update(), 60 * 1000);
+                        // When a new SW is found and activated, reload the page
+                        reg.addEventListener('updatefound', () => {
+                            const newWorker = reg.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'activated') {
+                                    console.log('New version deployed — reloading...');
+                                    window.location.reload();
+                                }
+                            });
+                        });
+                    })
                     .catch(err => console.error('SW registration failed:', err));
+            });
+            // Also reload when the controlling SW changes
+            let refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (!refreshing) {
+                    refreshing = true;
+                    window.location.reload();
+                }
             });
         }
     </script>
