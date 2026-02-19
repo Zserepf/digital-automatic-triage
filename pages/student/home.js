@@ -92,54 +92,6 @@ export function renderStudentHome(container) {
 
                 <!-- Symptom Selection -->
                 <div class="form-section">
-                    <div class="form-section-title">Where does it hurt?</div>
-                    <div class="form-section-subtitle">Tap body areas to auto-select symptoms</div>
-                    <div class="body-diagram-container" id="body-diagram">
-                        <svg viewBox="0 0 200 400" class="body-diagram-svg">
-                            <!-- Head -->
-                            <ellipse cx="100" cy="40" rx="28" ry="32" class="body-part" data-area="head" />
-                            <text x="100" y="44" class="body-label">Head</text>
-                            <!-- Neck/Throat -->
-                            <rect x="88" y="72" width="24" height="18" rx="6" class="body-part" data-area="throat" />
-                            <text x="100" y="84" class="body-label" style="font-size:6px;">Throat</text>
-                            <!-- Chest -->
-                            <rect x="60" y="90" width="80" height="55" rx="14" class="body-part" data-area="chest" />
-                            <text x="100" y="122" class="body-label">Chest</text>
-                            <!-- Stomach/Abdomen -->
-                            <rect x="65" y="148" width="70" height="50" rx="12" class="body-part" data-area="stomach" />
-                            <text x="100" y="177" class="body-label">Stomach</text>
-                            <!-- Left Arm -->
-                            <rect x="20" y="95" width="36" height="80" rx="14" class="body-part" data-area="arms" />
-                            <text x="38" y="140" class="body-label" style="font-size:7px;">Arm</text>
-                            <!-- Right Arm -->
-                            <rect x="144" y="95" width="36" height="80" rx="14" class="body-part" data-area="arms" />
-                            <text x="162" y="140" class="body-label" style="font-size:7px;">Arm</text>
-                            <!-- Left Leg -->
-                            <rect x="62" y="202" width="34" height="110" rx="14" class="body-part" data-area="legs" />
-                            <text x="79" y="262" class="body-label" style="font-size:7px;">Leg</text>
-                            <!-- Right Leg -->
-                            <rect x="104" y="202" width="34" height="110" rx="14" class="body-part" data-area="legs" />
-                            <text x="121" y="262" class="body-label" style="font-size:7px;">Leg</text>
-                            <!-- Left Foot -->
-                            <ellipse cx="79" cy="325" rx="18" ry="12" class="body-part" data-area="legs" />
-                            <!-- Right Foot -->
-                            <ellipse cx="121" cy="325" rx="18" ry="12" class="body-part" data-area="legs" />
-                            <!-- Left Hand -->
-                            <ellipse cx="38" cy="188" rx="14" ry="10" class="body-part" data-area="arms" />
-                            <!-- Right Hand -->
-                            <ellipse cx="162" cy="188" rx="14" ry="10" class="body-part" data-area="arms" />
-                            <!-- Eyes (small circle on head) -->
-                            <circle cx="90" cy="36" r="4" class="body-part body-part--small" data-area="eyes" />
-                            <circle cx="110" cy="36" r="4" class="body-part body-part--small" data-area="eyes" />
-                        </svg>
-                        <div class="body-diagram-legend" id="body-diagram-legend">
-                            <span class="body-legend-hint">Tap a body part to highlight related symptoms</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Symptom Selection -->
-                <div class="form-section">
                     <div class="form-section-title">Select Your Symptoms</div>
                     <div class="form-section-subtitle">Tap all that apply</div>
                     <div class="symptom-chips" id="symptom-chips">
@@ -348,53 +300,6 @@ function initSymptomForm() {
                 selectedSymptoms.add(symptom);
                 chip.classList.add('selected');
             }
-            updateSubmitButton();
-        });
-    });
-
-    // Body diagram interaction
-    const BODY_AREA_SYMPTOMS = {
-        head: ['Headache', 'Dizziness', 'High Fever', 'Fever'],
-        throat: ['Sore Throat', 'Cough', 'Difficulty Breathing'],
-        chest: ['Chest Pain', 'Difficulty Breathing', 'Cough'],
-        stomach: ['Stomach Pain', 'Vomiting', 'Diarrhea'],
-        arms: ['Body Ache', 'Rash', 'Allergic Reaction'],
-        legs: ['Body Ache', 'Rash', 'Tired'],
-        eyes: ['Sore Eyes', 'Headache']
-    };
-
-    document.querySelectorAll('.body-part').forEach(part => {
-        part.addEventListener('click', () => {
-            const area = part.dataset.area;
-            // Toggle area highlight
-            const allParts = document.querySelectorAll(`.body-part[data-area="${area}"]`);
-            const isActive = part.classList.contains('active');
-
-            allParts.forEach(p => p.classList.toggle('active', !isActive));
-
-            // Auto-select/deselect related symptom chips
-            const relatedSymptoms = BODY_AREA_SYMPTOMS[area] || [];
-            relatedSymptoms.forEach(symptom => {
-                const chip = document.querySelector(`.symptom-chip[data-symptom="${symptom}"]`);
-                if (!chip) return;
-                if (!isActive) {
-                    selectedSymptoms.add(symptom);
-                    chip.classList.add('selected');
-                }
-                // Don't auto-deselect on untoggle — user may have manually selected
-            });
-
-            // Update legend
-            const legend = document.getElementById('body-diagram-legend');
-            const activeAreas = [...document.querySelectorAll('.body-part.active')].map(p => p.dataset.area);
-            const uniqueAreas = [...new Set(activeAreas)];
-            if (uniqueAreas.length > 0) {
-                const areaLabels = { head: 'Head', throat: 'Throat', chest: 'Chest', stomach: 'Stomach', arms: 'Arms/Hands', legs: 'Legs/Feet', eyes: 'Eyes' };
-                legend.innerHTML = uniqueAreas.map(a => `<span class="body-legend-tag">${areaLabels[a] || a}</span>`).join('');
-            } else {
-                legend.innerHTML = '<span class="body-legend-hint">Tap a body part to highlight related symptoms</span>';
-            }
-
             updateSubmitButton();
         });
     });
