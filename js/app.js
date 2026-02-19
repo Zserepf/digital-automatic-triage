@@ -506,4 +506,6 @@ document.addEventListener('DOMContentLoaded', () => {
     Auth.init();
     Router.init();
     GlobalEmergencyAlert.init();
+    // Seed sections collection in Firestore (runs once, skips if already seeded)
+    SectionsService.seed();
 });

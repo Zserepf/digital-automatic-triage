@@ -480,3 +480,109 @@ const FollowUpService = {
         }
     }
 };
+
+// ---- Sections Service ----
+const SectionsService = {
+    // Master list — source of truth for seeding and fallback
+    MASTER: [
+        // St. Catherine Building
+        { building: 'St. Catherine Building', room: 'Room 201', section: 'Grade 1 Joy' },
+        { building: 'St. Catherine Building', room: 'Room 202', section: 'Grade 1 Peace' },
+        { building: 'St. Catherine Building', room: 'Room 203', section: 'Grade 1 Piety' },
+        { building: 'St. Catherine Building', room: 'Room 204', section: 'Grade 2 Humility' },
+        { building: 'St. Catherine Building', room: 'Room 207', section: 'Grade 2 Kindness' },
+        { building: 'St. Catherine Building', room: 'Room 208', section: 'Grade 2 Obedience' },
+        { building: 'St. Catherine Building', room: 'Room 209', section: 'Grade 3 Gratitude' },
+        { building: 'St. Catherine Building', room: 'Room 307', section: 'Grade 3 Honesty' },
+        { building: 'St. Catherine Building', room: 'Room 308', section: 'Grade 3 Wisdom' },
+        { building: 'St. Catherine Building', room: 'Room 303', section: 'Grade 4 Fortitude' },
+        { building: 'St. Catherine Building', room: 'Room 305', section: 'Grade 4 Justice' },
+        { building: 'St. Catherine Building', room: 'Room 304', section: 'Grade 4 Prudence' },
+        { building: 'St. Catherine Building', room: 'Room 401', section: 'Grade 5 Modesty' },
+        { building: 'St. Catherine Building', room: 'Room 302', section: 'Grade 5 Patience' },
+        { building: 'St. Catherine Building', room: 'Room 301', section: 'Grade 5 Providence' },
+        { building: 'St. Catherine Building', room: 'Room 404', section: 'Grade 6 Courage' },
+        { building: 'St. Catherine Building', room: 'Room 402', section: 'Grade 6 Determination' },
+        { building: 'St. Catherine Building', room: 'Room 403', section: 'Grade 6 Perseverance' },
+        { building: 'St. Catherine Building', room: 'Room 501', section: 'Gr. 11 St. Albert the Great (STEM)' },
+        { building: 'St. Catherine Building', room: 'Room 502', section: 'Gr. 11 St. Catherine of Siena (STEM)' },
+        { building: 'St. Catherine Building', room: 'Room 503', section: 'Gr. 11 St. Dominic de Guzman (STEM)' },
+        { building: 'St. Catherine Building', room: 'Room 504', section: 'Gr. 11 St. Martin de Porres (STEM)' },
+        { building: 'St. Catherine Building', room: 'Room 505', section: 'Gr. 11 St. Thomas Aquinas (STEM)' },
+        { building: 'St. Catherine Building', room: 'Room 506', section: 'Gr. 11 St. Francis de Capillas (STEM)' },
+        // St. Dominic Building
+        { building: 'St. Dominic Building', room: 'Room 404', section: 'Grade 7 Compassionate Christian' },
+        { building: 'St. Dominic Building', room: 'Room 405', section: 'Grade 7 Marian Devotee' },
+        { building: 'St. Dominic Building', room: 'Room 403', section: 'Grade 7 Research Motivated' },
+        { building: 'St. Dominic Building', room: 'Room 406', section: 'Grade 7 Service Oriented' },
+        { building: 'St. Dominic Building', room: 'Room 407', section: 'Grade 7 Truth Seeker' },
+        { building: 'St. Dominic Building', room: 'Room 402', section: 'Grade 7 Proud Global Pinoy' },
+        { building: 'St. Dominic Building', room: 'Room 401', section: 'Grade 8 Family Oriented' },
+        { building: 'St. Dominic Building', room: 'Room 408', section: 'Grade 8 Music Enthusiast' },
+        { building: 'St. Dominic Building', room: 'Room 409', section: 'Grade 8 Pro-Life Advocate' },
+        { building: 'St. Dominic Building', room: 'Room 410', section: 'Grade 8 Stewards of God\'s Creation' },
+        { building: 'St. Dominic Building', room: 'Room 415', section: 'Grade 8 Technology Competent' },
+        { building: 'St. Dominic Building', room: 'Room 412', section: 'Grade 9 Self Smart' },
+        { building: 'St. Dominic Building', room: 'Room 512', section: 'Grade 9 Body Smart A' },
+        { building: 'St. Dominic Building', room: 'Room 511', section: 'Grade 9 Body Smart B' },
+        { building: 'St. Dominic Building', room: 'Room 414', section: 'Grade 9 Creative Learner' },
+        { building: 'St. Dominic Building', room: 'Room 413', section: 'Grade 9 Gospel Preacher' },
+        { building: 'St. Dominic Building', room: 'Room 411', section: 'Grade 9 People Smart' },
+        { building: 'St. Dominic Building', room: 'Room 313', section: 'Grade 10 Eucharist Centered' },
+        { building: 'St. Dominic Building', room: 'Room 314', section: 'Grade 10 Good Samaritan' },
+        { building: 'St. Dominic Building', room: 'Room 312', section: 'Grade 10 Lifelong Learner' },
+        { building: 'St. Dominic Building', room: 'Room 311', section: 'Grade 10 Mission Oriented' },
+        { building: 'St. Dominic Building', room: 'Room 202', section: 'Grade 10 Integrity' },
+        { building: 'St. Dominic Building', room: 'Room 501', section: 'Gr. 11 St. Lorenzo Ruiz (ABM)' },
+        { building: 'St. Dominic Building', room: 'Room 503', section: 'Gr. 11 St. Rose of Lima (ABM)' },
+        { building: 'St. Dominic Building', room: 'Room 504', section: 'Gr. 11 St. Margaret of Hungary (HUMSS)' },
+        { building: 'St. Dominic Building', room: 'Room 505', section: 'Gr. 11 St. John Macias (HUMSS)' },
+        { building: 'St. Dominic Building', room: 'Room 507', section: 'Gr. 11 St. Pius V Culinary (TVL)' },
+        { building: 'St. Dominic Building', room: 'Room 506', section: 'Gr. 11 St. Louis de Montfort Travel Services (TVL)' },
+        // St. Thomas Building
+        { building: 'St. Thomas Building', room: 'Room 403', section: 'Grade 12 STEM 1' },
+        { building: 'St. Thomas Building', room: 'Room 501', section: 'Grade 12 STEM 2' },
+        { building: 'St. Thomas Building', room: 'Room 502', section: 'Grade 12 STEM 3' },
+        { building: 'St. Thomas Building', room: 'Room 503', section: 'Grade 12 STEM 4' },
+        { building: 'St. Thomas Building', room: 'Room 505', section: 'Grade 12 STEM 5' },
+        { building: 'St. Thomas Building', room: 'Room 504', section: 'Grade 12 ABM 1' },
+        { building: 'St. Thomas Building', room: 'Room 301', section: 'Grade 12 HUMMS 1' },
+        { building: 'St. Thomas Building', room: 'Room 506', section: 'Grade 12 HUMMS 2' },
+        { building: 'St. Thomas Building', room: 'Room 401', section: 'Grade 12 Travel Services 1' },
+        { building: 'St. Thomas Building', room: 'Room 402', section: 'Grade 12 Culinary 1' }
+    ],
+
+    // Seed Firestore with all sections (idempotent — skips if already seeded)
+    async seed() {
+        try {
+            const snapshot = await db.collection('sections').limit(1).get();
+            if (!snapshot.empty) return { success: true, skipped: true };
+
+            const batch = db.batch();
+            this.MASTER.forEach((s, i) => {
+                const ref = db.collection('sections').doc();
+                batch.set(ref, { ...s, order: i });
+            });
+            await batch.commit();
+            return { success: true, seeded: true };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    },
+
+    // Fetch all sections from Firestore, grouped by building
+    async getAll() {
+        try {
+            const snapshot = await db.collection('sections').orderBy('order').get();
+            if (snapshot.empty) {
+                // Fallback to master list if DB has nothing yet
+                return { success: true, data: this.MASTER };
+            }
+            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            return { success: true, data };
+        } catch (error) {
+            // Always fall back to master list on error
+            return { success: true, data: this.MASTER };
+        }
+    }
+};
