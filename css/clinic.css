@@ -226,7 +226,116 @@
 }
 
 /* ---- Responsive ---- */
+
+/* -- Clinic Mobile Topbar -- */
+.clinic-mobile-topbar {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    background: var(--color-white);
+    box-shadow: var(--shadow-sm);
+    z-index: var(--z-navbar);
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--space-base);
+}
+
+.clinic-hamburger {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: var(--space-sm);
+    border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease;
+}
+
+.clinic-hamburger:hover {
+    background: var(--color-background);
+}
+
+.clinic-hamburger .material-icons-round {
+    font-size: 28px;
+}
+
+.clinic-mobile-brand {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+}
+
+/* -- Sidebar overlay -- */
+.sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: calc(var(--z-navbar) - 1);
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.hidden {
+    display: none;
+}
+
+/* -- Clinic notification badges -- */
+.clinic-notif-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    min-width: 18px;
+    height: 18px;
+    border-radius: var(--radius-full);
+    background: var(--color-emergency);
+    color: white;
+    font-size: 10px;
+    font-weight: var(--font-weight-bold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    line-height: 1;
+}
+
+.clinic-notif-badge.hidden {
+    display: none;
+}
+
+.clinic-notif-badge-mobile {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 16px;
+    height: 16px;
+    border-radius: var(--radius-full);
+    background: var(--color-emergency);
+    color: white;
+    font-size: 9px;
+    font-weight: var(--font-weight-bold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 3px;
+    line-height: 1;
+}
+
+.clinic-notif-badge-mobile.hidden {
+    display: none;
+}
+
 @media (max-width: 768px) {
+    .clinic-mobile-topbar {
+        display: flex;
+    }
+
+    .page-clinic .clinic-content {
+        padding-top: calc(56px + var(--space-base));
+    }
+
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
     }

@@ -322,6 +322,11 @@ function getClinicSidebar(activePage) {
                     <span class="material-icons-round">folder_open</span>
                     Records
                 </a>
+                <a class="sidebar-item ${activePage === 'notifications' ? 'active' : ''}" data-route="/clinic/notifications" style="position: relative;">
+                    <span class="material-icons-round">notifications</span>
+                    Notifications
+                    <span id="clinic-notif-badge" class="clinic-notif-badge hidden"></span>
+                </a>
                 <a class="sidebar-item ${activePage === 'settings' ? 'active' : ''}" data-route="/clinic/settings">
                     <span class="material-icons-round">settings</span>
                     Settings
@@ -334,6 +339,23 @@ function getClinicSidebar(activePage) {
                 </a>
             </div>
         </aside>
+        <!-- Mobile top bar -->
+        <div class="clinic-mobile-topbar" id="clinic-mobile-topbar">
+            <button class="clinic-hamburger" id="clinic-hamburger" aria-label="Open menu">
+                <span class="material-icons-round">menu</span>
+            </button>
+            <div class="clinic-mobile-brand">
+                <strong>DAT</strong> <span style="color: var(--color-text-hint); font-size: var(--font-size-sm);">Clinic Portal</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <a data-route="/clinic/notifications" style="position: relative; cursor: pointer;">
+                    <span class="material-icons-round" style="font-size: 24px; color: var(--color-text-secondary);">notifications</span>
+                    <span id="clinic-notif-badge-mobile" class="clinic-notif-badge-mobile hidden"></span>
+                </a>
+            </div>
+        </div>
+        <!-- Mobile overlay -->
+        <div class="sidebar-overlay hidden" id="sidebar-overlay"></div>
     `;
 }
 
@@ -346,3 +368,47 @@ document.addEventListener('click', (e) => {
         AuthService.logout().then(() => Router.navigate('/login'));
     }
 });
+
+// Hamburger toggle for mobile sidebar
+document.addEventListener('click', (e) => {
+    if (e.target.closest('#clinic-hamburger')) {
+        const sidebar = document.getElementById('clinic-sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        if (sidebar) sidebar.classList.toggle('open');
+        if (overlay) overlay.classList.toggle('hidden');
+    }
+    if (e.target.closest('#sidebar-overlay')) {
+        const sidebar = document.getElementById('clinic-sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        if (sidebar) sidebar.classList.remove('open');
+        if (overlay) overlay.classList.add('hidden');
+    }
+    // Close sidebar on nav item click (mobile)
+    if (e.target.closest('.sidebar-item') && window.innerWidth <= 768) {
+        const sidebar = document.getElementById('clinic-sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        if (sidebar) sidebar.classList.remove('open');
+        if (overlay) overlay.classList.add('hidden');
+    }
+});
+
+// Load clinic notification badge
+async function loadClinicNotifBadge() {
+    try {
+        const count = await NotificationService.getUnreadCount();
+        ['clinic-notif-badge', 'clinic-notif-badge-mobile'].forEach(id => {
+            const badge = document.getElementById(id);
+            if (badge) {
+                if (count > 0) {
+                    badge.textContent = count > 9 ? '9+' : count;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+        });
+    } catch (e) {}
+}
+// Auto-refresh badge when page loads
+setTimeout(loadClinicNotifBadge, 1000);
+

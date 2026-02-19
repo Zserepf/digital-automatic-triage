@@ -255,6 +255,16 @@ Router.register('/student/profile', async (container) => {
     renderStudentProfile(container);
 });
 
+Router.register('/student/notifications', async (container) => {
+    const { renderStudentNotifications } = await import('/pages/student/notifications.js');
+    renderStudentNotifications(container);
+});
+
+Router.register('/clinic/notifications', async (container) => {
+    const { renderClinicNotifications } = await import('/pages/clinic/notifications.js');
+    renderClinicNotifications(container);
+});
+
 // Clinic pages
 Router.register('/clinic/dashboard', async (container) => {
     const { renderClinicDashboard } = await import('/pages/clinic/dashboard.js');

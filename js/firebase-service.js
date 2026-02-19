@@ -506,6 +506,148 @@ const FollowUpService = {
         } catch (error) {
             return { success: false, error: error.message };
         }
+    },
+
+    // Get follow-ups for a specific patient (clinic staff)
+    async getByUserId(userId) {
+        try {
+            const snapshot = await db.collection('follow_ups')
+                .where('userId', '==', userId)
+                .orderBy('scheduledDate', 'desc')
+                .get();
+            const followUps = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            return { success: true, data: followUps };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    },
+
+    // Add clinic instructions to a follow-up
+    async addInstructions(followUpId, instructions) {
+        try {
+            await db.collection('follow_ups').doc(followUpId).update({
+                clinicInstructions: instructions,
+                instructionsAddedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                instructionsAddedBy: auth.currentUser?.uid || null
+            });
+            return { success: true };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    }
+};
+
+// ---- Notification Service ----
+const NotificationService = {
+    // Create a notification
+    async create(notifData) {
+        try {
+            const docRef = await db.collection('notifications').add({
+                type: notifData.type || 'general',
+                title: notifData.title || '',
+                message: notifData.message || '',
+                targetRole: notifData.targetRole || 'all',
+                targetUserId: notifData.targetUserId || null,
+                relatedId: notifData.relatedId || null,
+                severity: notifData.severity || 'normal',
+                read: false,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                createdBy: auth.currentUser?.uid || null
+            });
+            return { success: true, id: docRef.id };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    },
+
+    // Get notifications for the current user (role-based + targeted)
+    async getMyNotifications(limitCount = 50) {
+        try {
+            const userData = await AuthService.getUserData(auth.currentUser.uid);
+            const role = userData.data?.role || 'student';
+
+            // Get role-targeted notifications
+            const roleSnapshot = await db.collection('notifications')
+                .where('targetRole', '==', role)
+                .orderBy('createdAt', 'desc')
+                .limit(limitCount)
+                .get();
+
+            // Get user-specific notifications
+            const userSnapshot = await db.collection('notifications')
+                .where('targetUserId', '==', auth.currentUser.uid)
+                .orderBy('createdAt', 'desc')
+                .limit(limitCount)
+                .get();
+
+            // Merge and deduplicate
+            const map = {};
+            roleSnapshot.docs.forEach(doc => { map[doc.id] = { id: doc.id, ...doc.data() }; });
+            userSnapshot.docs.forEach(doc => { map[doc.id] = { id: doc.id, ...doc.data() }; });
+
+            const notifications = Object.values(map).sort((a, b) => {
+                const aTime = a.createdAt?.toMillis?.() || 0;
+                const bTime = b.createdAt?.toMillis?.() || 0;
+                return bTime - aTime;
+            });
+            return { success: true, data: notifications };
+        } catch (error) {
+            return { success: false, error: error.message, data: [] };
+        }
+    },
+
+    // Get unread count
+    async getUnreadCount() {
+        try {
+            const result = await this.getMyNotifications(100);
+            if (!result.success) return 0;
+            return result.data.filter(n => !n.read).length;
+        } catch (error) {
+            return 0;
+        }
+    },
+
+    // Mark a notification as read
+    async markRead(notificationId) {
+        try {
+            await db.collection('notifications').doc(notificationId).update({ read: true });
+            return { success: true };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    },
+
+    // Mark all as read for current user
+    async markAllRead() {
+        try {
+            const result = await this.getMyNotifications(200);
+            if (!result.success) return { success: false };
+            const unread = result.data.filter(n => !n.read);
+            const batch = db.batch();
+            unread.forEach(n => {
+                batch.update(db.collection('notifications').doc(n.id), { read: true });
+            });
+            await batch.commit();
+            return { success: true };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    },
+
+    // Listen for new notifications (real-time)
+    onNotifications(callback) {
+        const uid = auth.currentUser?.uid;
+        if (!uid) return () => {};
+
+        // Listen for user-targeted notifications
+        return db.collection('notifications')
+            .where('targetUserId', '==', uid)
+            .orderBy('createdAt', 'desc')
+            .limit(20)
+            .onSnapshot(snapshot => {
+                const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                callback(notifications);
+            });
     }
 };
 

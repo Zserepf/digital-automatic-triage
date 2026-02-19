@@ -29,6 +29,10 @@ export function renderStudentHome(container) {
                     <p>How are you feeling today?</p>
                 </div>
                 <div class="student-header-actions">
+                    <div style="position: relative; cursor: pointer;" data-route="/student/notifications">
+                        <span class="material-icons-round" style="font-size: 26px; color: var(--color-text-secondary);">notifications</span>
+                        <span id="notif-badge" class="notif-badge hidden"></span>
+                    </div>
                     <div class="student-avatar" data-route="/student/profile">${initials}</div>
                 </div>
             </div>
@@ -107,7 +111,26 @@ export function renderStudentHome(container) {
     `;
 
     initSymptomForm();
+
+    // Load notification badge count
+    loadNotifBadge();
 }
+
+async function loadNotifBadge() {
+    try {
+        const count = await NotificationService.getUnreadCount();
+        const badge = document.getElementById('notif-badge');
+        if (badge) {
+            if (count > 0) {
+                badge.textContent = count > 9 ? '9+' : count;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+    } catch (e) {}
+}
+window._updateNotifBadge = loadNotifBadge;
 
 function initSymptomForm() {
     let selectedSeverity = 0;

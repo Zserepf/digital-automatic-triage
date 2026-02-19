@@ -171,6 +171,31 @@ export function renderConsultationForm(container, params = {}) {
                 });
             }
 
+            // Notify student that consultation is complete
+            try {
+                await NotificationService.create({
+                    type: 'consultation',
+                    title: 'Consultation Complete',
+                    message: `Your consultation has been completed. Diagnosis: ${diagnosis}. ${requiresFollowUp ? 'A follow-up checkup has been scheduled.' : ''} Visit the Recovery page for details.`,
+                    targetRole: 'student',
+                    targetUserId: params.userId,
+                    relatedId: result.id,
+                    severity: 'normal'
+                });
+            } catch (e) {}
+
+            // Also notify clinic staff
+            try {
+                await NotificationService.create({
+                    type: 'consultation',
+                    title: 'Consultation Recorded',
+                    message: `Consultation completed for patient. Diagnosis: ${diagnosis}.`,
+                    targetRole: 'clinic_staff',
+                    relatedId: result.id,
+                    severity: 'info'
+                });
+            } catch (e) {}
+
             Utils.hideLoading();
             Utils.showToast('Consultation completed!', 'success');
             Router.navigate('/clinic/queue');
