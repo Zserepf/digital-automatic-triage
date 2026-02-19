@@ -301,3 +301,233 @@
 .profile-info-value {
     font-weight: var(--font-weight-medium);
 }
+
+/* ---- Body Diagram ---- */
+.body-diagram-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-base);
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.body-diagram-svg {
+    width: 180px;
+    height: auto;
+    max-height: 340px;
+}
+
+.body-part {
+    fill: var(--color-background);
+    stroke: var(--color-border);
+    stroke-width: 1.5;
+    cursor: pointer;
+    transition: fill 0.2s ease, stroke 0.2s ease;
+}
+
+.body-part:hover {
+    fill: var(--color-primary-light);
+    stroke: var(--color-primary);
+}
+
+.body-part.active {
+    fill: rgba(37, 99, 235, 0.25);
+    stroke: var(--color-primary);
+    stroke-width: 2.5;
+}
+
+.body-part--small {
+    stroke-width: 1;
+}
+
+.body-label {
+    fill: var(--color-text-hint);
+    font-size: 8px;
+    font-weight: 600;
+    text-anchor: middle;
+    pointer-events: none;
+    user-select: none;
+}
+
+.body-diagram-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    min-height: 28px;
+}
+
+.body-legend-hint {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-hint);
+    text-align: center;
+}
+
+.body-legend-tag {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    padding: 2px 10px;
+    border-radius: var(--radius-full);
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+}
+
+/* ---- Symptom History Chart ---- */
+.symptom-history-card {
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    padding: var(--space-base);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: var(--space-lg);
+}
+
+.symptom-history-card h3 {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-sm);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.history-chart-container {
+    position: relative;
+    height: 120px;
+    width: 100%;
+}
+
+.history-chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.history-chart-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 80px;
+    color: var(--color-text-hint);
+    font-size: var(--font-size-sm);
+}
+
+/* ---- Medication Timer ---- */
+.med-timer-card {
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    padding: var(--space-base);
+    box-shadow: var(--shadow-sm);
+    border-left: 4px solid var(--color-primary);
+}
+
+.med-timer-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-sm) 0;
+    border-bottom: 1px solid var(--color-border);
+    gap: var(--space-sm);
+}
+
+.med-timer-item:last-child {
+    border-bottom: none;
+}
+
+.med-timer-name {
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-sm);
+    flex: 1;
+    min-width: 0;
+}
+
+.med-timer-dosage {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+}
+
+.med-timer-countdown {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary);
+    white-space: nowrap;
+}
+
+.med-timer-countdown.overdue {
+    color: var(--color-emergency);
+}
+
+.med-timer-taken {
+    font-size: var(--font-size-xs);
+    color: var(--color-normal);
+    font-weight: var(--font-weight-semibold);
+}
+
+.med-take-btn {
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity 0.15s;
+}
+
+.med-take-btn:hover {
+    opacity: 0.85;
+}
+
+/* ---- Dark Mode ---- */
+body.dark-mode {
+    --color-white: #1a1a2e;
+    --color-background: #16213e;
+    --color-surface: #1a1a2e;
+    --color-text-primary: #e0e0e0;
+    --color-text-secondary: #a0a0b0;
+    --color-text-hint: #707080;
+    --color-border: #2a2a3e;
+    --color-primary-light: rgba(37, 99, 235, 0.15);
+}
+
+body.dark-mode .card,
+body.dark-mode .symptom-history-card,
+body.dark-mode .body-diagram-container,
+body.dark-mode .med-timer-card {
+    background: #1e1e3a;
+    color: #e0e0e0;
+}
+
+body.dark-mode .symptom-chip {
+    background: #2a2a3e;
+    color: #c0c0d0;
+    border-color: #3a3a4e;
+}
+
+body.dark-mode .symptom-chip.selected {
+    background: var(--color-primary);
+    color: white;
+}
+
+body.dark-mode .body-part {
+    fill: #2a2a3e;
+    stroke: #3a3a5e;
+}
+
+body.dark-mode .body-part.active {
+    fill: rgba(37, 99, 235, 0.3);
+}
+
+body.dark-mode .body-label {
+    fill: #8080a0;
+}
+
+body.dark-mode .input-field {
+    background: #2a2a3e;
+    color: #e0e0e0;
+    border-color: #3a3a4e;
+}

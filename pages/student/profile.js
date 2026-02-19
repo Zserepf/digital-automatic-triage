@@ -71,6 +71,32 @@ export function renderStudentProfile(container) {
                 </button>
             </div>
 
+            <!-- Settings -->
+            <div class="card mb-lg">
+                <h4 class="section-header" style="margin-top: 0;">Settings</h4>
+                <div class="profile-info-item" style="cursor: pointer;" id="dark-mode-toggle">
+                    <span class="profile-info-label" style="display: flex; align-items: center; gap: 8px;">
+                        <span class="material-icons-round" style="font-size: 20px;">dark_mode</span>
+                        Dark Mode
+                    </span>
+                    <div style="position: relative; width: 44px; height: 24px;">
+                        <div id="dark-mode-switch" style="
+                            width: 44px; height: 24px; border-radius: 12px;
+                            background: ${document.body.classList.contains('dark-mode') ? 'var(--color-primary)' : 'var(--color-border)'};
+                            transition: background 0.2s ease; cursor: pointer; position: relative;
+                        ">
+                            <div style="
+                                position: absolute; top: 2px;
+                                left: ${document.body.classList.contains('dark-mode') ? '22px' : '2px'};
+                                width: 20px; height: 20px; border-radius: 50%;
+                                background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+                                transition: left 0.2s ease;
+                            "></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Actions -->
             <button class="btn btn--danger btn--full" id="logout-btn">
                 <span class="material-icons-round">logout</span>
@@ -92,6 +118,19 @@ export function renderStudentProfile(container) {
     // Add contact handler
     document.getElementById('add-contact-btn')?.addEventListener('click', () => {
         showAddContactModal();
+    });
+
+    // Dark mode toggle
+    document.getElementById('dark-mode-toggle')?.addEventListener('click', () => {
+        const isDark = document.body.classList.toggle('dark-mode');
+        localStorage.setItem('dat_dark_mode', isDark ? '1' : '0');
+
+        // Update the toggle switch visual
+        const sw = document.getElementById('dark-mode-switch');
+        if (sw) {
+            sw.style.background = isDark ? 'var(--color-primary)' : 'var(--color-border)';
+            sw.querySelector('div').style.left = isDark ? '22px' : '2px';
+        }
     });
 }
 

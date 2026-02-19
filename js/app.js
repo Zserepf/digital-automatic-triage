@@ -511,11 +511,64 @@ const GlobalEmergencyAlert = {
     }
 };
 
+// ---- Auto Follow-Up Reminder Check ----
+async function checkFollowUpReminders() {
+    try {
+        const user = firebase.auth().currentUser;
+        if (!user) return;
+
+        // Only for students
+        const userData = await AuthService.getUserData(user.uid);
+        if (userData.data?.role !== 'student') return;
+
+        const result = await FollowUpService.getMyFollowUps();
+        if (!result.success) return;
+
+        const now = new Date();
+        const in24h = new Date(now.getTime() + 24 * 3600000);
+        const notifiedKey = `followup_notified_${user.uid}`;
+        let notified = {};
+        try { notified = JSON.parse(localStorage.getItem(notifiedKey) || '{}'); } catch (e) {}
+
+        for (const fu of result.data) {
+            if (fu.status === 'completed' || fu.status === 'cancelled') continue;
+            if (notified[fu.id]) continue;
+
+            const scheduled = fu.scheduledDate?.toDate ? fu.scheduledDate.toDate() : new Date(fu.scheduledDate);
+            if (isNaN(scheduled.getTime())) continue;
+
+            // If follow-up is within the next 24 hours
+            if (scheduled > now && scheduled <= in24h) {
+                await NotificationService.create({
+                    type: 'follow_up_reminder',
+                    title: 'Follow-Up Reminder',
+                    message: `You have a follow-up appointment scheduled for ${Utils.formatDate(fu.scheduledDate)}. Don't forget to visit the clinic!`,
+                    targetRole: 'student',
+                    targetUserId: user.uid,
+                    relatedId: fu.id,
+                    severity: 'normal'
+                });
+                notified[fu.id] = true;
+            }
+        }
+
+        localStorage.setItem(notifiedKey, JSON.stringify(notified));
+    } catch (e) {}
+}
+
 // ---- Initialize App ----
 document.addEventListener('DOMContentLoaded', () => {
+    // Apply dark mode from localStorage
+    if (localStorage.getItem('dat_dark_mode') === '1') {
+        document.body.classList.add('dark-mode');
+    }
+
     Auth.init();
     Router.init();
     GlobalEmergencyAlert.init();
     // Seed sections collection in Firestore (runs once, skips if already seeded)
     SectionsService.seed();
+
+    // Check follow-up reminders after auth state settles
+    setTimeout(checkFollowUpReminders, 3000);
 });

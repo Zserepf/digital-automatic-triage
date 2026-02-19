@@ -37,6 +37,17 @@ export function renderStudentHome(container) {
                 </div>
             </div>
 
+            <!-- Symptom History Chart -->
+            <div class="symptom-history-card" id="symptom-history-card">
+                <h3>
+                    <span class="material-icons-round" style="font-size: 18px;">show_chart</span>
+                    Recent Symptom Trend
+                </h3>
+                <div class="history-chart-container" id="history-chart-container">
+                    <div class="history-chart-empty">Loading...</div>
+                </div>
+            </div>
+
             <!-- Symptom Form -->
             <form id="symptom-form" class="symptom-form">
                 <!-- Severity Selection -->
@@ -81,6 +92,54 @@ export function renderStudentHome(container) {
 
                 <!-- Symptom Selection -->
                 <div class="form-section">
+                    <div class="form-section-title">Where does it hurt?</div>
+                    <div class="form-section-subtitle">Tap body areas to auto-select symptoms</div>
+                    <div class="body-diagram-container" id="body-diagram">
+                        <svg viewBox="0 0 200 400" class="body-diagram-svg">
+                            <!-- Head -->
+                            <ellipse cx="100" cy="40" rx="28" ry="32" class="body-part" data-area="head" />
+                            <text x="100" y="44" class="body-label">Head</text>
+                            <!-- Neck/Throat -->
+                            <rect x="88" y="72" width="24" height="18" rx="6" class="body-part" data-area="throat" />
+                            <text x="100" y="84" class="body-label" style="font-size:6px;">Throat</text>
+                            <!-- Chest -->
+                            <rect x="60" y="90" width="80" height="55" rx="14" class="body-part" data-area="chest" />
+                            <text x="100" y="122" class="body-label">Chest</text>
+                            <!-- Stomach/Abdomen -->
+                            <rect x="65" y="148" width="70" height="50" rx="12" class="body-part" data-area="stomach" />
+                            <text x="100" y="177" class="body-label">Stomach</text>
+                            <!-- Left Arm -->
+                            <rect x="20" y="95" width="36" height="80" rx="14" class="body-part" data-area="arms" />
+                            <text x="38" y="140" class="body-label" style="font-size:7px;">Arm</text>
+                            <!-- Right Arm -->
+                            <rect x="144" y="95" width="36" height="80" rx="14" class="body-part" data-area="arms" />
+                            <text x="162" y="140" class="body-label" style="font-size:7px;">Arm</text>
+                            <!-- Left Leg -->
+                            <rect x="62" y="202" width="34" height="110" rx="14" class="body-part" data-area="legs" />
+                            <text x="79" y="262" class="body-label" style="font-size:7px;">Leg</text>
+                            <!-- Right Leg -->
+                            <rect x="104" y="202" width="34" height="110" rx="14" class="body-part" data-area="legs" />
+                            <text x="121" y="262" class="body-label" style="font-size:7px;">Leg</text>
+                            <!-- Left Foot -->
+                            <ellipse cx="79" cy="325" rx="18" ry="12" class="body-part" data-area="legs" />
+                            <!-- Right Foot -->
+                            <ellipse cx="121" cy="325" rx="18" ry="12" class="body-part" data-area="legs" />
+                            <!-- Left Hand -->
+                            <ellipse cx="38" cy="188" rx="14" ry="10" class="body-part" data-area="arms" />
+                            <!-- Right Hand -->
+                            <ellipse cx="162" cy="188" rx="14" ry="10" class="body-part" data-area="arms" />
+                            <!-- Eyes (small circle on head) -->
+                            <circle cx="90" cy="36" r="4" class="body-part body-part--small" data-area="eyes" />
+                            <circle cx="110" cy="36" r="4" class="body-part body-part--small" data-area="eyes" />
+                        </svg>
+                        <div class="body-diagram-legend" id="body-diagram-legend">
+                            <span class="body-legend-hint">Tap a body part to highlight related symptoms</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Symptom Selection -->
+                <div class="form-section">
                     <div class="form-section-title">Select Your Symptoms</div>
                     <div class="form-section-subtitle">Tap all that apply</div>
                     <div class="symptom-chips" id="symptom-chips">
@@ -114,6 +173,9 @@ export function renderStudentHome(container) {
 
     // Load notification badge count
     loadNotifBadge();
+
+    // Load symptom history chart
+    loadSymptomHistoryChart();
 }
 
 async function loadNotifBadge() {
@@ -131,6 +193,118 @@ async function loadNotifBadge() {
     } catch (e) {}
 }
 window._updateNotifBadge = loadNotifBadge;
+
+// ---- Symptom History Chart ----
+async function loadSymptomHistoryChart() {
+    const container = document.getElementById('history-chart-container');
+    if (!container) return;
+
+    try {
+        const result = await SymptomLogService.getMine();
+        const logs = result.success ? result.data : [];
+
+        if (logs.length < 2) {
+            container.innerHTML = '<div class="history-chart-empty">Log symptoms a few times to see your trend chart</div>';
+            return;
+        }
+
+        // Take last 10 entries, oldest first
+        const recent = logs.slice(0, 10).reverse();
+
+        // Create canvas
+        const canvas = document.createElement('canvas');
+        container.innerHTML = '';
+        container.appendChild(canvas);
+
+        const ctx = canvas.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+        const rect = container.getBoundingClientRect();
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        canvas.style.width = rect.width + 'px';
+        canvas.style.height = rect.height + 'px';
+        ctx.scale(dpr, dpr);
+
+        const W = rect.width;
+        const H = rect.height;
+        const pad = { top: 10, right: 12, bottom: 24, left: 28 };
+        const chartW = W - pad.left - pad.right;
+        const chartH = H - pad.top - pad.bottom;
+
+        // Data
+        const severities = recent.map(l => l.severityLevel || 1);
+        const pains = recent.map(l => l.painScale || 1);
+        const dates = recent.map(l => {
+            const d = l.timestamp?.toDate ? l.timestamp.toDate() : new Date(l.timestamp);
+            return (d.getMonth() + 1) + '/' + d.getDate();
+        });
+
+        // Y-axis labels
+        ctx.fillStyle = '#999';
+        ctx.font = '9px system-ui, sans-serif';
+        ctx.textAlign = 'right';
+        for (let i = 0; i <= 10; i += 5) {
+            const y = pad.top + chartH - (i / 10) * chartH;
+            ctx.fillText(i, pad.left - 4, y + 3);
+            ctx.strokeStyle = '#eee';
+            ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            ctx.moveTo(pad.left, y);
+            ctx.lineTo(W - pad.right, y);
+            ctx.stroke();
+        }
+
+        // X-axis labels
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#999';
+        const step = chartW / (recent.length - 1);
+        dates.forEach((d, i) => {
+            const x = pad.left + i * step;
+            if (i % Math.ceil(recent.length / 5) === 0 || i === recent.length - 1) {
+                ctx.fillText(d, x, H - 4);
+            }
+        });
+
+        // Draw severity line (blue)
+        function drawLine(data, maxVal, color) {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            data.forEach((val, i) => {
+                const x = pad.left + i * step;
+                const y = pad.top + chartH - (val / maxVal) * chartH;
+                i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+
+            // Dots
+            data.forEach((val, i) => {
+                const x = pad.left + i * step;
+                const y = pad.top + chartH - (val / maxVal) * chartH;
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(x, y, 3, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        drawLine(severities, 5, '#2563eb');   // Severity: blue, max 5
+        drawLine(pains, 10, '#ef4444');       // Pain: red, max 10
+
+        // Legend
+        ctx.font = '9px system-ui, sans-serif';
+        ctx.fillStyle = '#2563eb';
+        ctx.fillRect(pad.left, H - 12, 8, 3);
+        ctx.fillText('Severity', pad.left + 30, H - 8);
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(pad.left + 60, H - 12, 8, 3);
+        ctx.fillText('Pain', pad.left + 80, H - 8);
+    } catch (e) {
+        container.innerHTML = '<div class="history-chart-empty">Unable to load chart</div>';
+    }
+}
 
 function initSymptomForm() {
     let selectedSeverity = 0;
@@ -174,6 +348,53 @@ function initSymptomForm() {
                 selectedSymptoms.add(symptom);
                 chip.classList.add('selected');
             }
+            updateSubmitButton();
+        });
+    });
+
+    // Body diagram interaction
+    const BODY_AREA_SYMPTOMS = {
+        head: ['Headache', 'Dizziness', 'High Fever', 'Fever'],
+        throat: ['Sore Throat', 'Cough', 'Difficulty Breathing'],
+        chest: ['Chest Pain', 'Difficulty Breathing', 'Cough'],
+        stomach: ['Stomach Pain', 'Vomiting', 'Diarrhea'],
+        arms: ['Body Ache', 'Rash', 'Allergic Reaction'],
+        legs: ['Body Ache', 'Rash', 'Tired'],
+        eyes: ['Sore Eyes', 'Headache']
+    };
+
+    document.querySelectorAll('.body-part').forEach(part => {
+        part.addEventListener('click', () => {
+            const area = part.dataset.area;
+            // Toggle area highlight
+            const allParts = document.querySelectorAll(`.body-part[data-area="${area}"]`);
+            const isActive = part.classList.contains('active');
+
+            allParts.forEach(p => p.classList.toggle('active', !isActive));
+
+            // Auto-select/deselect related symptom chips
+            const relatedSymptoms = BODY_AREA_SYMPTOMS[area] || [];
+            relatedSymptoms.forEach(symptom => {
+                const chip = document.querySelector(`.symptom-chip[data-symptom="${symptom}"]`);
+                if (!chip) return;
+                if (!isActive) {
+                    selectedSymptoms.add(symptom);
+                    chip.classList.add('selected');
+                }
+                // Don't auto-deselect on untoggle — user may have manually selected
+            });
+
+            // Update legend
+            const legend = document.getElementById('body-diagram-legend');
+            const activeAreas = [...document.querySelectorAll('.body-part.active')].map(p => p.dataset.area);
+            const uniqueAreas = [...new Set(activeAreas)];
+            if (uniqueAreas.length > 0) {
+                const areaLabels = { head: 'Head', throat: 'Throat', chest: 'Chest', stomach: 'Stomach', arms: 'Arms/Hands', legs: 'Legs/Feet', eyes: 'Eyes' };
+                legend.innerHTML = uniqueAreas.map(a => `<span class="body-legend-tag">${areaLabels[a] || a}</span>`).join('');
+            } else {
+                legend.innerHTML = '<span class="body-legend-hint">Tap a body part to highlight related symptoms</span>';
+            }
+
             updateSubmitButton();
         });
     });

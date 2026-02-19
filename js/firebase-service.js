@@ -296,6 +296,27 @@ const AppointmentService = {
         } catch (error) {
             return { success: false, error: error.message };
         }
+    },
+
+    // Alias for getMine
+    async getMyAppointments() {
+        return this.getMine();
+    },
+
+    // Get all waiting appointments (for queue position calculation)
+    async getWaitingAppointments() {
+        try {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const snapshot = await db.collection('appointments')
+                .where('status', '==', 'waiting')
+                .get();
+            const appointments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            return { success: true, data: appointments };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
     }
 };
 

@@ -111,6 +111,38 @@ export async function renderStudentRecovery(container) {
                 `}
             </div>
 
+            <!-- Medication Reminder Timer -->
+            ${prescriptions.length > 0 ? `
+            <div class="med-timer-card mb-lg" id="med-timer-section">
+                <h3 style="font-size: var(--font-size-md); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <span class="material-icons-round" style="color: var(--color-primary);">alarm</span>
+                    Medication Reminders
+                </h3>
+                <div id="med-timer-list">
+                    ${prescriptions.map((p, idx) => `
+                        <div class="med-timer-item" data-med-idx="${idx}">
+                            <div style="flex: 1; min-width: 0;">
+                                <div class="med-timer-name">${p.medicine}</div>
+                                <div class="med-timer-dosage">${p.dosage || 'As prescribed'}</div>
+                            </div>
+                            <div id="med-timer-status-${idx}" style="display: flex; align-items: center; gap: 8px;">
+                                <span class="med-timer-countdown" id="med-countdown-${idx}">--</span>
+                                <button class="med-take-btn" id="med-take-btn-${idx}" data-idx="${idx}">Take</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            ` : ''}
+
+            <!-- PDF Export Button -->
+            <div style="margin-bottom: var(--space-lg);">
+                <button class="btn btn--outline btn--full" id="export-pdf-btn">
+                    <span class="material-icons-round">picture_as_pdf</span>
+                    Export Consultation Summary
+                </button>
+            </div>
+
             <!-- Recommendations & Notes -->
             ${activeConsultation.recommendations || activeConsultation.notes ? `
             <div class="card card--elevated mb-lg" style="border-left: 4px solid var(--color-normal);">
@@ -161,25 +193,25 @@ export async function renderStudentRecovery(container) {
                     Help us understand your recovery progress. This feedback will be sent to the clinic.
                 </p>
                 <div class="severity-selector" id="recovery-survey-scale">
-                    <div class="severity-option" data-level="1">
-                        <span class="material-icons-round">sentiment_very_dissatisfied</span>
-                        <span>Worse</span>
-                    </div>
-                    <div class="severity-option" data-level="2">
-                        <span class="material-icons-round">sentiment_dissatisfied</span>
-                        <span>Poor</span>
-                    </div>
-                    <div class="severity-option" data-level="3">
-                        <span class="material-icons-round">sentiment_neutral</span>
-                        <span>Same</span>
+                    <div class="severity-option" data-level="5">
+                        <span class="material-icons-round">sentiment_very_satisfied</span>
+                        <span>Recovered</span>
                     </div>
                     <div class="severity-option" data-level="4">
                         <span class="material-icons-round">sentiment_satisfied</span>
                         <span>Better</span>
                     </div>
-                    <div class="severity-option" data-level="5">
-                        <span class="material-icons-round">sentiment_very_satisfied</span>
-                        <span>Recovered</span>
+                    <div class="severity-option" data-level="3">
+                        <span class="material-icons-round">sentiment_neutral</span>
+                        <span>Same</span>
+                    </div>
+                    <div class="severity-option" data-level="2">
+                        <span class="material-icons-round">sentiment_dissatisfied</span>
+                        <span>Poor</span>
+                    </div>
+                    <div class="severity-option" data-level="1">
+                        <span class="material-icons-round">sentiment_very_dissatisfied</span>
+                        <span>Worse</span>
                     </div>
                 </div>
 
@@ -364,6 +396,155 @@ export async function renderStudentRecovery(container) {
                     renderStudentRecovery(container);
                 });
             }
+        }
+
+        // ---- Medication Timer Logic ----
+        if (prescriptions.length > 0) {
+            const TIMER_KEY = `medTimers_${activeConsultation.id}`;
+            let timers = {};
+            try { timers = JSON.parse(localStorage.getItem(TIMER_KEY) || '{}'); } catch (e) {}
+
+            function renderTimerState(idx) {
+                const countdown = document.getElementById(`med-countdown-${idx}`);
+                const btn = document.getElementById(`med-take-btn-${idx}`);
+                if (!countdown || !btn) return;
+
+                const timerData = timers[idx];
+                if (!timerData || !timerData.lastTaken) {
+                    countdown.textContent = 'Not taken yet';
+                    countdown.classList.remove('overdue');
+                    btn.textContent = 'Take Now';
+                    btn.disabled = false;
+                    return;
+                }
+
+                const lastTaken = new Date(timerData.lastTaken);
+                const intervalHours = timerData.intervalHours || 8;
+                const nextDue = new Date(lastTaken.getTime() + intervalHours * 3600000);
+                const now = new Date();
+                const diff = nextDue - now;
+
+                if (diff <= 0) {
+                    countdown.textContent = 'Overdue!';
+                    countdown.classList.add('overdue');
+                    btn.textContent = 'Take Now';
+                    btn.disabled = false;
+                } else {
+                    const hrs = Math.floor(diff / 3600000);
+                    const mins = Math.floor((diff % 3600000) / 60000);
+                    countdown.textContent = `Next in ${hrs}h ${mins}m`;
+                    countdown.classList.remove('overdue');
+                    btn.textContent = 'Taken';
+                    btn.disabled = true;
+                    btn.style.opacity = '0.5';
+                }
+            }
+
+            // Parse interval from dosage string (e.g., "every 8 hours" → 8)
+            function parseInterval(dosage) {
+                const match = (dosage || '').match(/every\s*(\d+)\s*h/i);
+                if (match) return parseInt(match[1]);
+                if (/3\s*times/i.test(dosage)) return 8;
+                if (/twice|2\s*times/i.test(dosage)) return 12;
+                if (/once/i.test(dosage)) return 24;
+                return 8; // default every 8 hours
+            }
+
+            prescriptions.forEach((p, idx) => {
+                if (!timers[idx]) {
+                    timers[idx] = { intervalHours: parseInterval(p.dosage), lastTaken: null };
+                }
+                renderTimerState(idx);
+
+                const btn = document.getElementById(`med-take-btn-${idx}`);
+                if (btn) {
+                    btn.addEventListener('click', () => {
+                        timers[idx].lastTaken = new Date().toISOString();
+                        localStorage.setItem(TIMER_KEY, JSON.stringify(timers));
+                        renderTimerState(idx);
+                        Utils.showToast(`${p.medicine} marked as taken!`, 'success');
+                    });
+                }
+            });
+
+            // Refresh countdowns every minute
+            const timerInterval = setInterval(() => {
+                if (!document.getElementById('med-timer-section')) {
+                    clearInterval(timerInterval);
+                    return;
+                }
+                prescriptions.forEach((_, idx) => renderTimerState(idx));
+            }, 60000);
+        }
+
+        // ---- PDF Export ----
+        const exportBtn = document.getElementById('export-pdf-btn');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => {
+                const rxRows = prescriptions.map((p, i) =>
+                    `<tr><td>${i + 1}</td><td><strong>${p.medicine}</strong></td><td>${p.dosage || 'N/A'}</td><td>${p.instructions || '-'}</td></tr>`
+                ).join('');
+
+                const printHTML = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Consultation Summary - DAT</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; padding: 40px; color: #333; max-width: 700px; margin: 0 auto; }
+                            h1 { color: #2563eb; font-size: 22px; border-bottom: 2px solid #2563eb; padding-bottom: 8px; }
+                            h2 { font-size: 16px; margin-top: 24px; color: #444; }
+                            .meta { color: #888; font-size: 13px; margin-bottom: 20px; }
+                            table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+                            th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; font-size: 13px; }
+                            th { background: #f5f5f5; font-weight: 600; }
+                            .notes { background: #f9f9f9; padding: 12px; border-radius: 6px; font-size: 13px; margin-top: 8px; }
+                            .footer { margin-top: 40px; font-size: 11px; color: #aaa; text-align: center; border-top: 1px solid #eee; padding-top: 12px; }
+                            @media print { body { padding: 20px; } }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>Digital Automatic Triage — Consultation Summary</h1>
+                        <div class="meta">
+                            Date: ${Utils.formatDate(activeConsultation.date)} &nbsp;|&nbsp;
+                            Patient: ${Auth.getDisplayName()} &nbsp;|&nbsp;
+                            Status: ${activeConsultation.status}
+                        </div>
+
+                        <h2>Diagnosis</h2>
+                        <p>${activeConsultation.diagnosis || 'No diagnosis provided'}</p>
+
+                        <h2>Prescriptions</h2>
+                        ${prescriptions.length > 0 ? `
+                            <table>
+                                <thead><tr><th>#</th><th>Medicine</th><th>Dosage</th><th>Instructions</th></tr></thead>
+                                <tbody>${rxRows}</tbody>
+                            </table>
+                        ` : '<p>No prescriptions given.</p>'}
+
+                        ${activeConsultation.recommendations ? `
+                            <h2>Recommendations</h2>
+                            <div class="notes">${activeConsultation.recommendations}</div>
+                        ` : ''}
+
+                        ${activeConsultation.requiresFollowUp ? `
+                            <h2>Follow-Up</h2>
+                            <p>Scheduled: ${Utils.formatDate(activeConsultation.followUpDate)}</p>
+                        ` : ''}
+
+                        <div class="footer">
+                            Generated by DAT (Digital Automatic Triage) &bull; ${new Date().toLocaleDateString()}
+                        </div>
+                    </body>
+                    </html>
+                `;
+
+                const printWin = window.open('', '_blank');
+                printWin.document.write(printHTML);
+                printWin.document.close();
+                printWin.focus();
+                setTimeout(() => printWin.print(), 500);
+            });
         }
 
     } catch (error) {
