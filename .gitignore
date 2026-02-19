@@ -4,7 +4,7 @@ node_modules/
 # Firebase
 .firebase/
 firebase-debug.log
-.firebaserc
+dataconnect-debug.log
 
 # Environment
 .env
