@@ -369,7 +369,7 @@ const EmergencyService = {
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                 location: {
                     building: locationData.building || '',
-                    floor: locationData.floor || ''
+                    room: locationData.room || ''
                 },
                 studentInfo: {
                     name: `${profile.firstName || ''} ${profile.lastName || ''}`.trim(),

@@ -264,35 +264,131 @@ document.addEventListener('click', (e) => {
 });
 
 async function showSOSConfirmation() {
+    const ROOMS = {
+        'St. Catherine Building': [
+            'Room 201 - Grade 1 Joy', 'Room 202 - Grade 1 Peace', 'Room 203 - Grade 1 Piety',
+            'Room 204 - Grade 2 Humility', 'Room 207 - Grade 2 Kindness', 'Room 208 - Grade 2 Obedience',
+            'Room 209 - Grade 3 Gratitude', 'Room 307 - Grade 3 Honesty', 'Room 308 - Grade 3 Wisdom',
+            'Room 303 - Grade 4 Fortitude', 'Room 305 - Grade 4 Justice', 'Room 304 - Grade 4 Prudence',
+            'Room 401 - Grade 5 Modesty', 'Room 302 - Grade 5 Patience', 'Room 301 - Grade 5 Providence',
+            'Room 404 - Grade 6 Courage', 'Room 402 - Grade 6 Determination', 'Room 403 - Grade 6 Perseverance',
+            'Room 501 - Grade 11 St. Albert the Great (STEM)', 'Room 502 - Grade 11 St. Catherine of Siena (STEM)',
+            'Room 503 - Grade 11 St. Dominic de Guzman (STEM)', 'Room 504 - Grade 11 St. Martin de Porres (STEM)',
+            'Room 505 - Grade 11 St. Thomas Aquinas (STEM)', 'Room 506 - Grade 11 St. Francis de Capillas (STEM)'
+        ],
+        'St. Dominic Building': [
+            'Room 202 - Grade 10 Integrity',
+            'Room 404 - Grade 7 Compassionate Christian', 'Room 405 - Grade 7 Marian Devotee',
+            'Room 403 - Grade 7 Research Motivated', 'Room 406 - Grade 7 Service Oriented',
+            'Room 407 - Grade 7 Truth Seeker', 'Room 402 - Grade 7 Proud Global Pinoy',
+            'Room 401 - Grade 8 Family Oriented', 'Room 408 - Grade 8 Music Enthusiast',
+            'Room 409 - Grade 8 Pro-Life Advocate', 'Room 410 - Grade 8 Stewards of God\'s Creation',
+            'Room 415 - Grade 8 Technology Competent',
+            'Room 412 - Grade 9 Self Smart', 'Room 512 - Grade 9 Body Smart',
+            'Room 414 - Grade 9 Creative Learner', 'Room 413 - Grade 9 Gospel Preacher',
+            'Room 511 - Grade 9 Body Smart', 'Room 411 - Grade 9 People Smart',
+            'Room 313 - Grade 10 Eucharist Centered', 'Room 314 - Grade 10 Good Samaritan',
+            'Room 312 - Grade 10 Lifelong Learner', 'Room 311 - Grade 10 Mission Oriented',
+            'Room 501 - Grade 11 St. Lorenzo Ruiz (ABM)', 'Room 503 - Grade 11 St. Rose of Lima (ABM)',
+            'Room 504 - Grade 11 St. Margaret of Hungary (HUMMS)', 'Room 505 - Grade 11 St. John Macias (HUMMS)',
+            'Room 507 - Grade 11 St. Pius V (Culinary) (TVL)', 'Room 506 - Grade 11 St. Louis de Montfort (Travel Services) (TVL)'
+        ],
+        'St. Thomas Building': [
+            'Room 403 - Grade 12 STEM 1', 'Room 501 - Grade 12 STEM 2', 'Room 502 - Grade 12 STEM 3',
+            'Room 503 - Grade 12 STEM 4', 'Room 505 - Grade 12 STEM 5',
+            'Room 504 - Grade 12 ABM 1', 'Room 301 - Grade 12 HUMMS 1', 'Room 506 - Grade 12 HUMMS 2',
+            'Room 401 - Grade 12 Travel Services 1', 'Room 402 - Grade 12 Culinary 1'
+        ]
+    };
+
     const backdrop = document.createElement('div');
     backdrop.className = 'modal-backdrop';
     backdrop.innerHTML = `
-        <div class="modal" style="text-align: center;">
-            <div style="font-size: 64px; margin-bottom: 16px;">🚨</div>
-            <h2 class="modal-title" style="color: var(--color-emergency); margin-bottom: 8px;">SCT 911</h2>
-            <p style="color: var(--color-text-secondary); margin-bottom: 24px;">
-                This will send an emergency alert to the clinic. Are you sure?
+        <div class="modal" style="text-align: center; max-width: 400px; width: 90%;">
+            <div style="font-size: 56px; margin-bottom: 8px;">🚨</div>
+            <h2 style="color: var(--color-emergency); margin-bottom: 4px; font-size: 1.5rem;">SCT 911 EMERGENCY</h2>
+            <p style="color: var(--color-text-secondary); margin-bottom: 20px; font-size: var(--font-size-sm);">
+                Clinic staff will be dispatched to your location.
             </p>
-            <div style="display: flex; gap: 12px;">
-                <button class="btn btn--secondary btn--full" id="sos-cancel">Cancel</button>
-                <button class="btn btn--danger btn--full" id="sos-confirm">
-                    <span class="material-icons-round">warning</span>
-                    SEND ALERT
-                </button>
+
+            <!-- Step 1: Building -->
+            <div id="sos-step-1">
+                <p style="font-weight: 600; margin-bottom: 12px;">Which building are you in?</p>
+                <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+                    ${Object.keys(ROOMS).map(b => `
+                        <button class="btn btn--secondary btn--full sos-building-btn" data-building="${b}">
+                            <span class="material-icons-round" style="vertical-align: middle; margin-right: 6px;">apartment</span>
+                            ${b}
+                        </button>
+                    `).join('')}
+                </div>
+                <button class="btn btn--ghost btn--full" id="sos-cancel-1">Cancel</button>
+            </div>
+
+            <!-- Step 2: Room (hidden) -->
+            <div id="sos-step-2" style="display:none;">
+                <p style="font-weight: 600; margin-bottom: 4px;" id="sos-building-label"></p>
+                <p style="font-size:var(--font-size-sm); color:var(--color-text-hint); margin-bottom: 12px;">Select your specific room:</p>
+                <select id="sos-room-select" class="input-field" style="margin-bottom: 16px;">
+                    <option value="">-- Select Room --</option>
+                </select>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn--secondary btn--full" id="sos-back">Back</button>
+                    <button class="btn btn--danger btn--full" id="sos-confirm" disabled>
+                        <span class="material-icons-round">warning</span>
+                        SEND ALERT
+                    </button>
+                </div>
             </div>
         </div>
     `;
     document.body.appendChild(backdrop);
 
-    document.getElementById('sos-cancel').addEventListener('click', () => backdrop.remove());
+    let selectedBuilding = '';
+    let selectedRoom = '';
+
+    // Cancel buttons
+    document.getElementById('sos-cancel-1').addEventListener('click', () => backdrop.remove());
+    document.getElementById('sos-back').addEventListener('click', () => {
+        document.getElementById('sos-step-2').style.display = 'none';
+        document.getElementById('sos-step-1').style.display = 'block';
+    });
+
+    // Building selection
+    backdrop.querySelectorAll('.sos-building-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            selectedBuilding = btn.dataset.building;
+            const rooms = ROOMS[selectedBuilding];
+
+            document.getElementById('sos-building-label').textContent = selectedBuilding;
+            const select = document.getElementById('sos-room-select');
+            select.innerHTML = '<option value="">-- Select Room --</option>' +
+                rooms.map(r => `<option value="${r}">${r}</option>`).join('');
+
+            document.getElementById('sos-step-1').style.display = 'none';
+            document.getElementById('sos-step-2').style.display = 'block';
+        });
+    });
+
+    // Enable confirm only when room is selected
+    document.getElementById('sos-room-select').addEventListener('change', (e) => {
+        selectedRoom = e.target.value;
+        document.getElementById('sos-confirm').disabled = !selectedRoom;
+    });
+
+    // Send alert
     document.getElementById('sos-confirm').addEventListener('click', async () => {
+        if (!selectedRoom) return;
         backdrop.remove();
         Utils.showLoading();
-        const result = await EmergencyService.triggerAlert();
+        const result = await EmergencyService.triggerAlert({
+            building: selectedBuilding,
+            room: selectedRoom
+        });
         Utils.hideLoading();
 
         if (result.success) {
-            Utils.showToast('Emergency alert sent! Help is on the way.', 'success');
+            Utils.showToast('🚨 Emergency alert sent! Help is on the way.', 'success');
         } else {
             Utils.showToast('Failed to send alert. Please call the clinic directly.', 'error');
         }

@@ -304,8 +304,206 @@ Router.register('/', async (container) => {
     }
 });
 
+// ---- Global Emergency Alert (Clinic Staff) ----
+const GlobalEmergencyAlert = {
+    _unsubscribe: null,
+    _overlayEl: null,
+    _audioCtx: null,
+    _alarmInterval: null,
+
+    init() {
+        AuthService.onAuthStateChanged(async (user) => {
+            if (user) {
+                const result = await AuthService.getUserData(user.uid);
+                const role = result.data?.role;
+                if (role === 'clinic_staff' || role === 'admin') {
+                    this._startListener();
+                }
+            } else {
+                this._stopListener();
+                this._removeOverlay();
+            }
+        });
+    },
+
+    _startListener() {
+        if (this._unsubscribe) return; // already listening
+        this._unsubscribe = EmergencyService.onEmergencyAlert((emergencies) => {
+            const active = emergencies.filter(e => e.status === 'active' || e.status === 'responding');
+            if (active.length > 0) {
+                this._showOverlay(active);
+            } else {
+                this._removeOverlay();
+            }
+        });
+    },
+
+    _stopListener() {
+        if (this._unsubscribe) {
+            this._unsubscribe();
+            this._unsubscribe = null;
+        }
+        clearInterval(this._alarmInterval);
+    },
+
+    _playAlarm() {
+        try {
+            if (!this._audioCtx) {
+                this._audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            const ctx = this._audioCtx;
+            const now = ctx.currentTime;
+            [0, 0.4, 0.8].forEach(offset => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(880, now + offset);
+                osc.frequency.setValueAtTime(660, now + offset + 0.2);
+                gain.gain.setValueAtTime(0.3, now + offset);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.35);
+                osc.start(now + offset);
+                osc.stop(now + offset + 0.35);
+            });
+        } catch (_) {}
+    },
+
+    _showOverlay(emergencies) {
+        this._removeOverlay(); // remove stale one first
+
+        const overlay = document.createElement('div');
+        overlay.id = 'global-emergency-overlay';
+        overlay.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(200,0,0,0.96); z-index: 99999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 24px; box-sizing: border-box; overflow-y: auto;
+            animation: emergencyPulse 0.8s infinite alternate;
+        `;
+
+        // Inject pulse keyframes if not already present
+        if (!document.getElementById('emergency-pulse-style')) {
+            const style = document.createElement('style');
+            style.id = 'emergency-pulse-style';
+            style.textContent = `
+                @keyframes emergencyPulse {
+                    from { background: rgba(200,0,0,0.96); }
+                    to   { background: rgba(255,30,30,1); }
+                }
+                @keyframes emergencyBounce {
+                    0%,100% { transform: scale(1); }
+                    50% { transform: scale(1.15); }
+                }
+                .ems-card {
+                    background: rgba(0,0,0,0.45);
+                    border: 3px solid rgba(255,255,255,0.6);
+                    border-radius: 16px;
+                    padding: 20px 24px;
+                    margin-bottom: 16px;
+                    width: 100%;
+                    max-width: 480px;
+                    color: #fff;
+                    text-align: left;
+                }
+                .ems-card h3 { margin: 0 0 6px; font-size: 1.25rem; }
+                .ems-card .ems-loc { font-size: 1.05rem; font-weight: 700; margin: 6px 0; }
+                .ems-card .ems-info { font-size: 0.88rem; opacity: 0.85; margin-bottom: 12px; }
+                .ems-actions { display: flex; gap: 10px; }
+                .ems-btn { flex: 1; padding: 11px; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: opacity .2s; }
+                .ems-btn:hover { opacity: 0.85; }
+                .ems-btn--respond { background: #fff; color: #c00; }
+                .ems-btn--resolve { background: #1a1a2e; color: #fff; }
+            `;
+            document.head.appendChild(style);
+        }
+
+        let html = `
+            <div style="text-align:center; color:#fff; margin-bottom:24px; max-width:480px; width:100%;">
+                <div style="font-size:72px; animation: emergencyBounce 0.8s infinite;">🚨</div>
+                <div style="font-size:2rem; font-weight:900; letter-spacing:2px; text-transform:uppercase; text-shadow:0 2px 8px rgba(0,0,0,0.5);">
+                    EMERGENCY ALERT
+                </div>
+                <div style="font-size:1.05rem; opacity:0.9; margin-top:4px;">${emergencies.length} active alert${emergencies.length > 1 ? 's' : ''}</div>
+            </div>
+        `;
+
+        emergencies.forEach(em => {
+            const info = em.studentInfo || {};
+            const loc = em.location || {};
+            const name = info.name || 'Unknown Student';
+            const section = info.section || 'N/A';
+            const studentId = info.studentId || '';
+            const building = loc.building || 'Unknown Building';
+            const room = loc.room || 'Unknown Room';
+            const ts = em.timestamp ? Utils.formatTime(em.timestamp) : '';
+            const statusLabel = em.status === 'responding' ? '🟡 Responding' : '🔴 Active';
+
+            html += `
+                <div class="ems-card" data-id="${em.id}">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <h3>🧑‍🎓 ${name}</h3>
+                        <span style="font-size:0.8rem; opacity:0.75;">${statusLabel}</span>
+                    </div>
+                    <div class="ems-loc">📍 ${building}<br>&nbsp;&nbsp;&nbsp;${room}</div>
+                    <div class="ems-info">
+                        Section: <b>${section}</b>${studentId ? ` &nbsp;|&nbsp; ID: <b>${studentId}</b>` : ''}
+                        ${ts ? `&nbsp;|&nbsp; ${ts}` : ''}
+                    </div>
+                    <div class="ems-actions">
+                        <button class="ems-btn ems-btn--respond" data-action="respond" data-id="${em.id}"
+                            ${em.status === 'responding' ? 'disabled style="opacity:0.5;"' : ''}>
+                            ✅ RESPOND
+                        </button>
+                        <button class="ems-btn ems-btn--resolve" data-action="resolve" data-id="${em.id}">
+                            ✔ RESOLVE
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+
+        overlay.innerHTML = html;
+        document.body.appendChild(overlay);
+        this._overlayEl = overlay;
+
+        // Play alarm
+        this._playAlarm();
+        clearInterval(this._alarmInterval);
+        this._alarmInterval = setInterval(() => this._playAlarm(), 4000);
+
+        // Button handlers
+        overlay.addEventListener('click', async (e) => {
+            const btn = e.target.closest('[data-action]');
+            if (!btn) return;
+            const action = btn.dataset.action;
+            const id = btn.dataset.id;
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            if (action === 'respond') {
+                await EmergencyService.respond(id);
+                Utils.showToast('Marked as responding.', 'info');
+            } else if (action === 'resolve') {
+                await EmergencyService.resolve(id);
+                Utils.showToast('Emergency resolved.', 'success');
+            }
+        });
+    },
+
+    _removeOverlay() {
+        clearInterval(this._alarmInterval);
+        if (this._overlayEl) {
+            this._overlayEl.remove();
+            this._overlayEl = null;
+        }
+        const existing = document.getElementById('global-emergency-overlay');
+        if (existing) existing.remove();
+    }
+};
+
 // ---- Initialize App ----
 document.addEventListener('DOMContentLoaded', () => {
     Auth.init();
     Router.init();
+    GlobalEmergencyAlert.init();
 });

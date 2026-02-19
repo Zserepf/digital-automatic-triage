@@ -97,8 +97,10 @@ export async function renderClinicDashboard(container) {
         if (emergencies.length > 0) {
             const latest = emergencies[0];
             banner.classList.remove('hidden');
-            document.getElementById('emergency-student-info').textContent =
-                `Student: ${latest.studentInfo?.name || 'Unknown'} | Section: ${latest.studentInfo?.section || 'N/A'}`;
+            document.getElementById('emergency-student-info').innerHTML =
+                `<b>${latest.studentInfo?.name || 'Unknown'}</b> &nbsp;|&nbsp; ${latest.studentInfo?.section || 'N/A'}` +
+                (latest.location?.building ? ` &nbsp;|&nbsp; 📍 ${latest.location.building}` : '') +
+                (latest.location?.room ? ` — ${latest.location.room}` : '');
 
             document.getElementById('respond-emergency-btn').onclick = async () => {
                 await EmergencyService.respond(latest.id);
