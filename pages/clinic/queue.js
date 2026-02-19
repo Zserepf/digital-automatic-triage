@@ -28,8 +28,11 @@ export async function renderClinicQueue(container) {
         </div>
     `;
 
+    // Cache for user profiles so we don't re-fetch on every update
+    let userCache = {};
+
     // Real-time queue
-    AppointmentService.onQueueUpdate((appointments) => {
+    AppointmentService.onQueueUpdate(async (appointments) => {
         const queueContent = document.getElementById('queue-content');
         if (!queueContent) return;
 
@@ -46,31 +49,68 @@ export async function renderClinicQueue(container) {
             return;
         }
 
+        // Load user profiles for any new UIDs
+        const newUids = appointments.map(a => a.userId).filter(uid => uid && !userCache[uid]);
+        if (newUids.length > 0) {
+            const newUsers = await AuthService.getUsersByIds(newUids);
+            userCache = { ...userCache, ...newUsers };
+        }
+
+        const severityColorMap = {
+            emergency: 'var(--color-emergency)',
+            severe: 'var(--color-severe)',
+            moderate: 'var(--color-moderate)',
+            minor: 'var(--color-normal)'
+        };
+
         queueContent.innerHTML = `
             <div style="display: flex; flex-direction: column; gap: 12px;">
-                ${appointments.map(apt => `
+                ${appointments.map(apt => {
+                    const user = userCache[apt.userId];
+                    const name = user?.profile
+                        ? `${user.profile.firstName || ''} ${user.profile.lastName || ''}`.trim() || 'Unknown Student'
+                        : 'Unknown Student';
+                    const studentId = user?.profile?.studentId || '';
+                    const section = user?.profile?.section || '';
+                    const sevColor = severityColorMap[apt.severity] || 'var(--color-normal)';
+
+                    return `
                     <div class="queue-card queue-card--${apt.severity || 'minor'}">
-                        <div class="queue-card-number" style="background: var(--color-${apt.severity === 'emergency' ? 'emergency' : apt.severity === 'severe' ? 'severe' : apt.severity === 'moderate' ? 'moderate' : 'normal'});">
+                        <div class="queue-card-number" style="background: ${sevColor}; color: white; min-width: 48px; text-align: center; font-size: 1.4rem; font-weight: 700; padding: 12px 8px; border-radius: 8px;">
                             ${apt.queueNumber || '-'}
                         </div>
-                        <div class="queue-card-body">
-                            <div class="queue-card-name">${apt.userId}</div>
-                            <div class="queue-card-detail">${(apt.severity || 'minor').toUpperCase()} — ${apt.type === 'auto' ? 'Auto-booked' : 'Manual'}</div>
-                            <div class="queue-card-detail">${Utils.formatTime(apt.createdAt)}</div>
+                        <div class="queue-card-body" style="flex: 1;">
+                            <div class="queue-card-name" style="font-weight: 700; font-size: var(--font-size-md);">${name}</div>
+                            ${studentId ? `<div class="queue-card-detail" style="color: var(--color-text-secondary);">ID: ${studentId}${section ? ` · ${section}` : ''}</div>` : ''}
+                            <div class="queue-card-detail" style="margin-top: 4px;">
+                                <span style="font-weight: 600; color: ${sevColor};">${(apt.severity || 'minor').toUpperCase()}</span>
+                                · ${apt.type === 'auto' ? 'Auto-booked' : 'Walk-in'}
+                                · ${apt.createdAt ? Utils.formatTime(apt.createdAt) : ''}
+                            </div>
                         </div>
                         <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
                             ${Utils.getStatusBadge(apt.status)}
                             <div style="display: flex; gap: 4px;">
                                 ${apt.status === 'waiting' ? `
-                                    <button class="btn btn--primary btn--sm" onclick="updateAppointmentStatus('${apt.id}', 'in_progress')">Start</button>
+                                    <button class="btn btn--primary btn--sm" onclick="updateAppointmentStatus('${apt.id}', 'in_progress')">
+                                        <span class="material-icons-round" style="font-size:16px;">play_arrow</span> Start
+                                    </button>
                                 ` : ''}
                                 ${apt.status === 'in_progress' ? `
-                                    <button class="btn btn--success btn--sm" onclick="openConsultationForm('${apt.id}', '${apt.userId}')">Complete</button>
+                                    <button class="btn btn--success btn--sm" onclick="openConsultationForm('${apt.id}', '${apt.userId}')">
+                                        <span class="material-icons-round" style="font-size:16px;">check</span> Complete
+                                    </button>
+                                ` : ''}
+                                ${apt.status === 'completed' ? `
+                                    <button class="btn btn--ghost btn--sm" onclick="viewPatient('${apt.userId}')">
+                                        <span class="material-icons-round" style="font-size:16px;">visibility</span> View
+                                    </button>
                                 ` : ''}
                             </div>
                         </div>
                     </div>
-                `).join('')}
+                    `;
+                }).join('')}
             </div>
         `;
     });
@@ -84,4 +124,8 @@ window.updateAppointmentStatus = async function(id, status) {
 
 window.openConsultationForm = function(appointmentId, userId) {
     Router.navigate('/clinic/consultation', { appointmentId, userId });
+};
+
+window.viewPatient = function(userId) {
+    Router.navigate('/clinic/patient', { userId });
 };

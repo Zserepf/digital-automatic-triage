@@ -68,14 +68,16 @@ export async function renderStudentRecovery(container) {
             <!-- Post-Consultation Checklist -->
             <div class="section-header">Post-Consultation Checklist</div>
             <div class="recovery-checklist mb-lg">
-                <div class="checklist-item checked">
-                    <span class="material-icons-round">check_circle</span>
+                <div class="checklist-item ${(activeConsultation.prescriptions || []).length > 0 ? 'checked' : 'unchecked'}">
+                    <span class="material-icons-round">${(activeConsultation.prescriptions || []).length > 0 ? 'check_circle' : 'radio_button_unchecked'}</span>
                     <div>
                         <strong>Prescriptions</strong>
                         <div style="font-size: var(--font-size-sm); color: var(--color-text-secondary);">
-                            ${(activeConsultation.prescriptions || []).map(p =>
-                                `${p.medicine} — ${p.dosage}`
-                            ).join('<br>') || 'None prescribed'}
+                            ${(activeConsultation.prescriptions || []).length > 0
+                                ? (activeConsultation.prescriptions || []).map(p =>
+                                    `<div style="padding: 2px 0;"><strong>${p.medicine}</strong>${p.dosage ? ` — ${p.dosage}` : ''}${p.instructions ? `<br><em style="color: var(--color-text-hint);">${p.instructions}</em>` : ''}</div>`
+                                  ).join('')
+                                : 'None prescribed'}
                         </div>
                     </div>
                 </div>

@@ -286,6 +286,11 @@ Router.register('/clinic/settings', async (container) => {
     renderClinicSettings(container);
 });
 
+Router.register('/clinic/records', async (container) => {
+    const { renderClinicRecords } = await import('/pages/clinic/records.js');
+    renderClinicRecords(container);
+});
+
 // Default route
 Router.register('/', async (container) => {
     if (Auth.isAuthenticated()) {

@@ -100,6 +100,23 @@ const AuthService = {
         }
     },
 
+    // Batch get multiple users by UIDs (returns a map: uid → userData)
+    async getUsersByIds(uids) {
+        try {
+            const uniqueIds = [...new Set(uids)].filter(Boolean);
+            if (uniqueIds.length === 0) return {};
+            const promises = uniqueIds.map(uid => db.collection('users').doc(uid).get());
+            const docs = await Promise.all(promises);
+            const map = {};
+            docs.forEach(doc => {
+                if (doc.exists) map[doc.id] = { id: doc.id, ...doc.data() };
+            });
+            return map;
+        } catch (error) {
+            return {};
+        }
+    },
+
     // Listen for auth state changes
     onAuthStateChanged(callback) {
         return auth.onAuthStateChanged(callback);
@@ -249,6 +266,20 @@ const AppointmentService = {
                 const appointments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 callback(appointments);
             });
+    },
+
+    // Get my appointments (student)
+    async getMine() {
+        try {
+            const snapshot = await db.collection('appointments')
+                .where('userId', '==', auth.currentUser.uid)
+                .orderBy('createdAt', 'desc')
+                .get();
+            const appointments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            return { success: true, data: appointments };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
     }
 };
 
@@ -294,6 +325,20 @@ const ConsultationService = {
     // Get my consultations (student)
     async getMine() {
         return this.getByStudent(auth.currentUser.uid);
+    },
+
+    // Get ALL consultations for clinic staff (with optional limit)
+    async getAllForClinic(limitCount = 100) {
+        try {
+            const snapshot = await db.collection('consultations')
+                .orderBy('date', 'desc')
+                .limit(limitCount)
+                .get();
+            const consultations = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            return { success: true, data: consultations };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
     }
 };
 

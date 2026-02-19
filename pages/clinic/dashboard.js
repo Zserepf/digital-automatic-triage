@@ -224,6 +224,10 @@ function getClinicSidebar(activePage) {
                     <span class="material-icons-round">analytics</span>
                     Analytics
                 </a>
+                <a class="sidebar-item ${activePage === 'records' ? 'active' : ''}" data-route="/clinic/records">
+                    <span class="material-icons-round">folder_open</span>
+                    Records
+                </a>
                 <a class="sidebar-item ${activePage === 'settings' ? 'active' : ''}" data-route="/clinic/settings">
                     <span class="material-icons-round">settings</span>
                     Settings
