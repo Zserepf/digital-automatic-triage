@@ -48,6 +48,20 @@ export async function renderPatientView(container, params = {}) {
 
         const initials = ((profile.firstName?.[0] || '') + (profile.lastName?.[0] || '')).toUpperCase() || '?';
 
+        const infoRow = (label, val) => val
+            ? `<div style="display:flex; gap:8px; padding:5px 0; border-bottom:1px solid var(--color-border); font-size:0.85rem; flex-wrap:wrap;">
+                   <span style="color:var(--color-text-secondary); min-width:160px; flex-shrink:0;">${label}</span>
+                   <span style="font-weight:600; color:var(--color-text-primary);">${val}</span>
+               </div>`
+            : '';
+
+        const tagBadge = (arr) => (arr||[]).length
+            ? (arr).map(t => `<span style="display:inline-block; background:#e3f2fd; color:var(--color-primary); border-radius:6px; padding:2px 9px; font-size:0.78rem; margin:2px;">${t}</span>`).join('')
+            : '<span style="color:var(--color-text-hint); font-size:0.82rem;">None</span>';
+
+        const sienanColor = profile.sienanStatus === 'New Sienan' ? '#2e7d32' : '#e65100';
+        const sienanBg    = profile.sienanStatus === 'New Sienan' ? '#e8f5e9'  : '#fff3e0';
+
         content.innerHTML = `
             <!-- Patient Header -->
             <div class="patient-view-header">
@@ -58,9 +72,49 @@ export async function renderPatientView(container, params = {}) {
                         <span>ID: ${profile.studentId || 'N/A'}</span>
                         <span>Section: ${profile.section || 'N/A'}</span>
                         <span>Blood Type: ${profile.bloodType || 'N/A'}</span>
+                        ${profile.sienanStatus ? `<span style="background:${sienanBg}; color:${sienanColor}; padding:2px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">${profile.sienanStatus}</span>` : ''}
                     </div>
                 </div>
             </div>
+
+            <!-- Collapsible Patient Profile -->
+            <details class="card mb-lg" style="padding:0; overflow:hidden;">
+                <summary style="padding:16px; cursor:pointer; font-weight:700; font-size:0.95rem; list-style:none; display:flex; justify-content:space-between; align-items:center; user-select:none;">
+                    <span><span class="material-icons-round" style="vertical-align:middle; font-size:18px; margin-right:6px; color:var(--color-primary);">person</span>Full Patient Profile</span>
+                    <span class="material-icons-round" style="font-size:18px; color:var(--color-text-secondary);">expand_more</span>
+                </summary>
+                <div style="padding:0 16px 16px;">
+
+                    <div style="font-weight:700; font-size:0.78rem; color:var(--color-primary); text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px; margin-top:8px;">Personal Details</div>
+                    ${infoRow('Full Name', [profile.firstName, profile.middleName, profile.lastName].filter(Boolean).join(' '))}
+                    ${infoRow('Date of Birth', profile.dob)}
+                    ${infoRow('Age', profile.age)}
+                    ${infoRow('Gender', profile.gender)}
+                    ${infoRow('City Address', profile.cityAddress)}
+                    ${infoRow('Telephone No.', profile.telNo)}
+                    ${infoRow('Cellphone No.', profile.cellNo)}
+                    ${infoRow('Religion', profile.religion)}
+                    ${infoRow('Nationality', profile.nationality)}
+
+                    <div style="font-weight:700; font-size:0.78rem; color:var(--color-primary); text-transform:uppercase; letter-spacing:.5px; margin:12px 0 6px;">Family Background</div>
+                    ${infoRow('Living With', profile.livingWith)}
+                    ${infoRow("Father's Name", profile.fatherName)}
+                    ${infoRow("Father's Occupation", profile.fatherOccupation)}
+                    ${infoRow("Mother's Name", profile.motherName)}
+                    ${infoRow("Mother's Occupation", profile.motherOccupation)}
+
+                    <div style="font-weight:700; font-size:0.78rem; color:var(--color-primary); text-transform:uppercase; letter-spacing:.5px; margin:12px 0 6px;">Health History</div>
+                    <div style="font-size:0.82rem; color:var(--color-text-secondary); margin-bottom:4px;">Family History:</div>
+                    <div style="margin-bottom:10px;">${tagBadge(profile.familyHistory)}</div>
+                    <div style="font-size:0.82rem; color:var(--color-text-secondary); margin-bottom:4px;">Personal History:</div>
+                    <div style="margin-bottom:10px;">${tagBadge(profile.personalHistory)}</div>
+                    ${profile.hadOperation ? `
+                    <div style="background:#fff3e0; border-radius:8px; padding:10px; font-size:0.85rem;">
+                        <strong style="color:#e65100;">⚕ Operation / Hospitalization:</strong><br>
+                        <span style="color:var(--color-text-primary);">${profile.operationDetails || 'Yes (no details provided)'}</span>
+                    </div>` : infoRow('Operation / Hospitalization', 'None')}
+                </div>
+            </details>
 
             <!-- Emergency Contacts -->
             <div class="card mb-lg">

@@ -33,14 +33,39 @@ const AuthService = {
                 role: userData.role || 'student',
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 profile: {
-                    firstName: userData.firstName || '',
-                    lastName: userData.lastName || '',
-                    studentId: userData.studentId || '',
-                    section: userData.section || '',
-                    building: userData.building || '',
-                    room: userData.room || '',
-                    bloodType: userData.bloodType || '',
-                    allergies: userData.allergies || [],
+                    // Basic identity
+                    firstName:        userData.firstName        || '',
+                    middleName:       userData.middleName       || '',
+                    lastName:         userData.lastName         || '',
+                    studentId:        userData.studentId        || '',
+                    enrollmentYear:   userData.enrollmentYear   || '',
+                    sienanStatus:     userData.sienanStatus     || '',
+                    // Academic placement
+                    section:          userData.section          || '',
+                    building:         userData.building         || '',
+                    room:             userData.room             || '',
+                    // Personal details
+                    gender:           userData.gender           || '',
+                    dob:              userData.dob              || '',
+                    age:              userData.age              || '',
+                    cityAddress:      userData.cityAddress      || '',
+                    telNo:            userData.telNo            || '',
+                    cellNo:           userData.cellNo           || '',
+                    religion:         userData.religion         || '',
+                    nationality:      userData.nationality      || '',
+                    // Family background
+                    livingWith:       userData.livingWith       || '',
+                    fatherName:       userData.fatherName       || '',
+                    fatherOccupation: userData.fatherOccupation || '',
+                    motherName:       userData.motherName       || '',
+                    motherOccupation: userData.motherOccupation || '',
+                    // Health
+                    bloodType:        userData.bloodType        || '',
+                    familyHistory:    userData.familyHistory    || [],
+                    personalHistory:  userData.personalHistory  || [],
+                    hadOperation:     userData.hadOperation     || false,
+                    operationDetails: userData.operationDetails || '',
+                    allergies:        userData.allergies        || [],
                     emergencyContacts: userData.emergencyContacts || []
                 },
                 settings: {

@@ -153,7 +153,11 @@ async function loadSymptomHistoryChart() {
 
     try {
         const result = await SymptomLogService.getMine();
-        const logs = result.success ? result.data : [];
+        if (!result.success) {
+            container.innerHTML = '<div class="history-chart-empty">Log symptoms a few times to see your trend chart</div>';
+            return;
+        }
+        const logs = result.data || [];
 
         if (logs.length < 2) {
             container.innerHTML = '<div class="history-chart-empty">Log symptoms a few times to see your trend chart</div>';
@@ -168,93 +172,100 @@ async function loadSymptomHistoryChart() {
         container.innerHTML = '';
         container.appendChild(canvas);
 
-        const ctx = canvas.getContext('2d');
-        const dpr = window.devicePixelRatio || 1;
-        const rect = container.getBoundingClientRect();
-        canvas.width = rect.width * dpr;
-        canvas.height = rect.height * dpr;
-        canvas.style.width = rect.width + 'px';
-        canvas.style.height = rect.height + 'px';
-        ctx.scale(dpr, dpr);
+        // Defer measurement until after browser layout pass
+        requestAnimationFrame(() => {
+            try {
+                const dpr  = window.devicePixelRatio || 1;
+                const rect = container.getBoundingClientRect();
+                const W    = rect.width  || container.offsetWidth  || 300;
+                const H    = rect.height || container.offsetHeight || 120;
 
-        const W = rect.width;
-        const H = rect.height;
-        const pad = { top: 10, right: 12, bottom: 24, left: 28 };
-        const chartW = W - pad.left - pad.right;
-        const chartH = H - pad.top - pad.bottom;
+                canvas.width  = W * dpr;
+                canvas.height = H * dpr;
+                canvas.style.width  = W + 'px';
+                canvas.style.height = H + 'px';
 
-        // Data
-        const severities = recent.map(l => l.severityLevel || 1);
-        const pains = recent.map(l => l.painScale || 1);
-        const dates = recent.map(l => {
-            const d = l.timestamp?.toDate ? l.timestamp.toDate() : new Date(l.timestamp);
-            return (d.getMonth() + 1) + '/' + d.getDate();
-        });
+                const ctx = canvas.getContext('2d');
+                ctx.scale(dpr, dpr);
 
-        // Y-axis labels
-        ctx.fillStyle = '#999';
-        ctx.font = '9px system-ui, sans-serif';
-        ctx.textAlign = 'right';
-        for (let i = 0; i <= 10; i += 5) {
-            const y = pad.top + chartH - (i / 10) * chartH;
-            ctx.fillText(i, pad.left - 4, y + 3);
-            ctx.strokeStyle = '#eee';
-            ctx.lineWidth = 0.5;
-            ctx.beginPath();
-            ctx.moveTo(pad.left, y);
-            ctx.lineTo(W - pad.right, y);
-            ctx.stroke();
-        }
+                const pad = { top: 10, right: 12, bottom: 24, left: 28 };
+                const chartW = W - pad.left - pad.right;
+                const chartH = H - pad.top - pad.bottom;
 
-        // X-axis labels
-        ctx.textAlign = 'center';
-        ctx.fillStyle = '#999';
-        const step = chartW / (recent.length - 1);
-        dates.forEach((d, i) => {
-            const x = pad.left + i * step;
-            if (i % Math.ceil(recent.length / 5) === 0 || i === recent.length - 1) {
-                ctx.fillText(d, x, H - 4);
+                const severities = recent.map(l => l.severityLevel || 1);
+                const pains      = recent.map(l => l.painScale     || 1);
+                const dates      = recent.map(l => {
+                    const d = l.timestamp?.toDate ? l.timestamp.toDate() : new Date(l.timestamp);
+                    return (d.getMonth() + 1) + '/' + d.getDate();
+                });
+
+                // Grid lines + Y-axis labels
+                ctx.fillStyle = '#999';
+                ctx.font = '9px system-ui, sans-serif';
+                ctx.textAlign = 'right';
+                for (let i = 0; i <= 10; i += 5) {
+                    const y = pad.top + chartH - (i / 10) * chartH;
+                    ctx.fillText(i, pad.left - 4, y + 3);
+                    ctx.strokeStyle = '#eee';
+                    ctx.lineWidth = 0.5;
+                    ctx.beginPath();
+                    ctx.moveTo(pad.left, y);
+                    ctx.lineTo(W - pad.right, y);
+                    ctx.stroke();
+                }
+
+                // X-axis labels
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#999';
+                const step = chartW / Math.max(recent.length - 1, 1);
+                dates.forEach((d, i) => {
+                    const x = pad.left + i * step;
+                    if (i % Math.ceil(recent.length / 5) === 0 || i === recent.length - 1) {
+                        ctx.fillText(d, x, H - 4);
+                    }
+                });
+
+                function drawLine(data, maxVal, color) {
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 2;
+                    ctx.lineJoin = 'round';
+                    ctx.lineCap = 'round';
+                    ctx.beginPath();
+                    data.forEach((val, i) => {
+                        const x = pad.left + i * step;
+                        const y = pad.top + chartH - (val / maxVal) * chartH;
+                        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+                    });
+                    ctx.stroke();
+                    data.forEach((val, i) => {
+                        const x = pad.left + i * step;
+                        const y = pad.top + chartH - (val / maxVal) * chartH;
+                        ctx.fillStyle = color;
+                        ctx.beginPath();
+                        ctx.arc(x, y, 3, 0, Math.PI * 2);
+                        ctx.fill();
+                    });
+                }
+
+                drawLine(severities, 5, '#2563eb');
+                drawLine(pains, 10, '#ef4444');
+
+                // Legend
+                ctx.font = '9px system-ui, sans-serif';
+                ctx.fillStyle = '#2563eb';
+                ctx.fillRect(pad.left, H - 12, 8, 3);
+                ctx.fillStyle = '#2563eb';
+                ctx.textAlign = 'left';
+                ctx.fillText('Severity', pad.left + 10, H - 8);
+                ctx.fillStyle = '#ef4444';
+                ctx.fillRect(pad.left + 60, H - 12, 8, 3);
+                ctx.fillText('Pain', pad.left + 70, H - 8);
+            } catch (drawErr) {
+                container.innerHTML = '<div class="history-chart-empty">Could not render chart</div>';
             }
         });
-
-        // Draw severity line (blue)
-        function drawLine(data, maxVal, color) {
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 2;
-            ctx.lineJoin = 'round';
-            ctx.lineCap = 'round';
-            ctx.beginPath();
-            data.forEach((val, i) => {
-                const x = pad.left + i * step;
-                const y = pad.top + chartH - (val / maxVal) * chartH;
-                i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-            });
-            ctx.stroke();
-
-            // Dots
-            data.forEach((val, i) => {
-                const x = pad.left + i * step;
-                const y = pad.top + chartH - (val / maxVal) * chartH;
-                ctx.fillStyle = color;
-                ctx.beginPath();
-                ctx.arc(x, y, 3, 0, Math.PI * 2);
-                ctx.fill();
-            });
-        }
-
-        drawLine(severities, 5, '#2563eb');   // Severity: blue, max 5
-        drawLine(pains, 10, '#ef4444');       // Pain: red, max 10
-
-        // Legend
-        ctx.font = '9px system-ui, sans-serif';
-        ctx.fillStyle = '#2563eb';
-        ctx.fillRect(pad.left, H - 12, 8, 3);
-        ctx.fillText('Severity', pad.left + 30, H - 8);
-        ctx.fillStyle = '#ef4444';
-        ctx.fillRect(pad.left + 60, H - 12, 8, 3);
-        ctx.fillText('Pain', pad.left + 80, H - 8);
     } catch (e) {
-        container.innerHTML = '<div class="history-chart-empty">Unable to load chart</div>';
+        container.innerHTML = '<div class="history-chart-empty">Log symptoms a few times to see your trend chart</div>';
     }
 }
 
