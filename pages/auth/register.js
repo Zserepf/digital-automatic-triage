@@ -28,6 +28,8 @@ const STEPS = [
 
 /* ─── main renderer ──────────────────────────────────────── */
 export async function renderRegisterPage(container) {
+    addAuthStyles();
+
     const sectionsResult = await SectionsService.getAll();
     const sections = sectionsResult.data || SectionsService.MASTER;
 
@@ -73,8 +75,8 @@ export async function renderRegisterPage(container) {
 
     function renderWizard() {
         container.innerHTML = `
-            <div class="auth-page" style="padding: 16px 0; overflow-y: auto; min-height: 100vh;">
-                <div class="auth-card" style="max-width: 520px; padding: 24px; border-radius: 16px;">
+            <div class="auth-page" style="align-items: flex-start; padding: 24px 16px;">
+                <div class="auth-card" style="max-width: 520px; width: 100%;">
 
                     <!-- Progress bar -->
                     <div style="margin-bottom: 20px;">
@@ -675,4 +677,63 @@ export async function renderRegisterPage(container) {
 
     // Kick off the wizard
     renderWizard();
+}
+
+function addAuthStyles() {
+    if (document.getElementById('auth-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'auth-styles';
+    style.textContent = `
+        .auth-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-base);
+            background: linear-gradient(135deg, #2196F3 0%, #1565C0 100%);
+        }
+        .auth-card {
+            background: var(--color-white);
+            border-radius: var(--radius-xl);
+            padding: var(--space-2xl);
+            width: 100%;
+            max-width: 400px;
+            box-shadow: var(--shadow-xl);
+        }
+        .auth-header {
+            text-align: center;
+            margin-bottom: var(--space-2xl);
+        }
+        .auth-header h1 {
+            font-size: var(--font-size-xl);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-primary);
+            margin-bottom: var(--space-xs);
+        }
+        .auth-header p {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+        }
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-base);
+        }
+        .auth-links {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--space-sm);
+            margin-top: var(--space-md);
+        }
+        .auth-link {
+            font-size: var(--font-size-sm);
+            color: var(--color-primary);
+            cursor: pointer;
+        }
+        .auth-link:hover {
+            text-decoration: underline;
+        }
+    `;
+    document.head.appendChild(style);
 }
