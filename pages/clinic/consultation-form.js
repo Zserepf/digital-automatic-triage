@@ -3,11 +3,27 @@
    Digital Automatic Triage
    ======================================== */
 
-export function renderConsultationForm(container, params = {}) {
+export async function renderConsultationForm(container, params = {}) {
     if (!Auth.isAuthenticated()) {
         Router.navigate('/login');
         return;
     }
+
+    // Load patient profile for the header
+    let patientProfile = null;
+    if (params.userId) {
+        const result = await AuthService.getUserData(params.userId);
+        if (result.success) patientProfile = result.data?.profile || null;
+    }
+
+    const patientName = patientProfile
+        ? `${patientProfile.firstName || ''} ${patientProfile.lastName || ''}`.trim()
+        : 'Unknown Patient';
+    const patientSection = patientProfile?.section || patientProfile?.yearLevel || '';
+    const patientCourse = patientProfile?.course || patientProfile?.strand || '';
+    const patientId = patientProfile?.studentId || '';
+    const sectionLine = [patientCourse, patientSection].filter(Boolean).join(' – ') || '—';
+    const todayStr = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
     container.innerHTML = `
         <link rel="stylesheet" href="/css/clinic.css">
@@ -18,53 +34,111 @@ export function renderConsultationForm(container, params = {}) {
                     <span class="material-icons-round">arrow_back</span> Back to Queue
                 </button>
 
-                <h1 style="margin-bottom: 24px;">Post-Consultation Form</h1>
+                <!-- Paper-record style header -->
+                <div class="card card--elevated" style="padding: 24px 28px; margin-bottom: 24px; border-top: 4px solid var(--color-primary);">
+                    <div style="text-align: center; margin-bottom: 16px;">
+                        <div style="font-size: var(--font-size-xs); text-transform: uppercase; letter-spacing: 1px; color: var(--color-text-hint); margin-bottom: 4px;">Digital Automatic Triage — Clinic Record</div>
+                        <div style="font-size: var(--font-size-lg); font-weight: 700; color: var(--color-primary);">CONSULTATION FORM</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; border-top: 1px solid var(--color-border); padding-top: 16px;">
+                        <div>
+                            <div style="font-size: var(--font-size-xs); color: var(--color-text-hint); text-transform: uppercase; margin-bottom: 4px;">Patient Name</div>
+                            <div style="font-weight: 700; font-size: var(--font-size-md);">${patientName}</div>
+                            ${patientId ? `<div style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">ID: ${patientId}</div>` : ''}
+                        </div>
+                        <div>
+                            <div style="font-size: var(--font-size-xs); color: var(--color-text-hint); text-transform: uppercase; margin-bottom: 4px;">Year / Course / Section</div>
+                            <div style="font-weight: 600; font-size: var(--font-size-sm);">${sectionLine}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: var(--font-size-xs); color: var(--color-text-hint); text-transform: uppercase; margin-bottom: 4px;">Date</div>
+                            <div style="font-weight: 600; font-size: var(--font-size-sm);">${todayStr}</div>
+                        </div>
+                    </div>
+                </div>
 
                 <form id="consultation-form" class="consultation-form">
-                    <!-- Diagnosis -->
-                    <div class="input-group">
-                        <label for="diagnosis">Diagnosis</label>
-                        <textarea id="diagnosis" class="input-field" rows="3" placeholder="Enter diagnosis..." required></textarea>
-                    </div>
 
-                    <!-- Prescriptions -->
-                    <div>
-                        <label style="font-size: var(--font-size-sm); font-weight: 500; color: var(--color-text-secondary); display: block; margin-bottom: 8px;">Prescriptions</label>
-                        <div id="prescription-list" class="prescription-list"></div>
-                        <div class="prescription-entry mt-md">
-                            <div class="input-group" style="margin-bottom: 0;">
-                                <input type="text" class="input-field" id="rx-medicine" placeholder="Medicine name">
-                            </div>
-                            <div class="input-group" style="margin-bottom: 0;">
-                                <input type="text" class="input-field" id="rx-dosage" placeholder="Dosage (e.g. 500mg)">
-                            </div>
-                            <div class="input-group" style="margin-bottom: 0;">
-                                <select class="input-field" id="rx-frequency">
-                                    <option value="" disabled selected>Frequency</option>
-                                    <option value="4">Every 4 hours</option>
-                                    <option value="6">Every 6 hours</option>
-                                    <option value="8">Every 8 hours (3x daily)</option>
-                                    <option value="12">Every 12 hours (2x daily)</option>
-                                    <option value="24">Once daily</option>
-                                </select>
-                            </div>
-                            <div class="input-group" style="margin-bottom: 0;">
-                                <input type="text" class="input-field" id="rx-instructions" placeholder="Instructions">
-                            </div>
-                            <button type="button" class="btn btn--primary btn--sm" id="add-rx-btn">
-                                <span class="material-icons-round">add</span>
-                            </button>
+                    <!-- ① Chief Complaint -->
+                    <div class="card card--bordered" style="margin-bottom: 20px; padding: 20px;">
+                        <div style="font-size: var(--font-size-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--color-text-hint); margin-bottom: 12px;">
+                            <span class="material-icons-round" style="font-size: 15px; vertical-align: middle; color: var(--color-primary);">campaign</span>
+                            Chief Complaint
+                        </div>
+                        <div class="input-group" style="margin-bottom: 0;">
+                            <textarea id="chief-complaint" class="input-field" rows="2" placeholder="What the patient presents with (in their own words)..." required></textarea>
                         </div>
                     </div>
 
-                    <!-- Recommendations -->
-                    <div class="input-group">
-                        <label for="recommendations">Recommendations / Notes</label>
-                        <textarea id="recommendations" class="input-field" rows="3" placeholder="Additional recommendations or notes..."></textarea>
+                    <!-- ② Diagnosis -->
+                    <div class="card card--bordered" style="margin-bottom: 20px; padding: 20px;">
+                        <div style="font-size: var(--font-size-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--color-text-hint); margin-bottom: 12px;">
+                            <span class="material-icons-round" style="font-size: 15px; vertical-align: middle; color: var(--color-primary);">biotech</span>
+                            Diagnosis
+                        </div>
+                        <div class="input-group" style="margin-bottom: 0;">
+                            <textarea id="diagnosis" class="input-field" rows="3" placeholder="Enter diagnosis..." required></textarea>
+                        </div>
                     </div>
 
-                    <!-- Follow-up -->
-                    <div class="card card--bordered">
+                    <!-- ③ Treatment -->
+                    <div class="card card--bordered" style="margin-bottom: 20px; padding: 20px;">
+                        <div style="font-size: var(--font-size-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--color-text-hint); margin-bottom: 16px;">
+                            <span class="material-icons-round" style="font-size: 15px; vertical-align: middle; color: var(--color-primary);">healing</span>
+                            Treatment
+                        </div>
+
+                        <!-- Prescriptions sub-section -->
+                        <div style="margin-bottom: 16px;">
+                            <div style="font-size: var(--font-size-sm); font-weight: 600; margin-bottom: 8px;">
+                                <span class="material-icons-round" style="font-size: 14px; vertical-align: middle;">medication</span>
+                                Prescriptions / Medicines
+                            </div>
+                            <div id="prescription-list" class="prescription-list"></div>
+                            <div class="prescription-entry mt-md">
+                                <div class="input-group" style="margin-bottom: 0;">
+                                    <input type="text" class="input-field" id="rx-medicine" placeholder="Medicine name">
+                                </div>
+                                <div class="input-group" style="margin-bottom: 0;">
+                                    <input type="text" class="input-field" id="rx-dosage" placeholder="Dosage (e.g. 500mg)">
+                                </div>
+                                <div class="input-group" style="margin-bottom: 0;">
+                                    <select class="input-field" id="rx-frequency">
+                                        <option value="" disabled selected>Frequency</option>
+                                        <option value="4">Every 4 hours</option>
+                                        <option value="6">Every 6 hours</option>
+                                        <option value="8">Every 8 hours (3x daily)</option>
+                                        <option value="12">Every 12 hours (2x daily)</option>
+                                        <option value="24">Once daily</option>
+                                    </select>
+                                </div>
+                                <div class="input-group" style="margin-bottom: 0;">
+                                    <input type="text" class="input-field" id="rx-instructions" placeholder="Special instructions">
+                                </div>
+                                <button type="button" class="btn btn--primary btn--sm" id="add-rx-btn">
+                                    <span class="material-icons-round">add</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Treatment Notes -->
+                        <div>
+                            <div style="font-size: var(--font-size-sm); font-weight: 600; margin-bottom: 8px;">
+                                <span class="material-icons-round" style="font-size: 14px; vertical-align: middle;">notes</span>
+                                Treatment Notes
+                            </div>
+                            <div class="input-group" style="margin-bottom: 0;">
+                                <textarea id="recommendations" class="input-field" rows="3" placeholder="Rest, hydration, activity restrictions, other instructions..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ④ Follow-up -->
+                    <div class="card card--bordered" style="margin-bottom: 20px; padding: 20px;">
+                        <div style="font-size: var(--font-size-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--color-text-hint); margin-bottom: 12px;">
+                            <span class="material-icons-round" style="font-size: 15px; vertical-align: middle; color: var(--color-primary);">event_repeat</span>
+                            Follow-up
+                        </div>
                         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
                             <input type="checkbox" id="requires-followup" style="width: 20px; height: 20px;">
                             <label for="requires-followup" style="font-weight: 600;">Requires Follow-up Checkup</label>
@@ -146,10 +220,16 @@ export function renderConsultationForm(container, params = {}) {
     document.getElementById('consultation-form').addEventListener('submit', async (e) => {
         e.preventDefault();
 
+        const chiefComplaint = document.getElementById('chief-complaint').value.trim();
         const diagnosis = document.getElementById('diagnosis').value.trim();
         const recommendations = document.getElementById('recommendations').value.trim();
         const requiresFollowUp = document.getElementById('requires-followup').checked;
         const followUpDateStr = document.getElementById('followup-date').value;
+
+        if (!chiefComplaint) {
+            Utils.showToast('Please enter the chief complaint.', 'warning');
+            return;
+        }
 
         if (!diagnosis) {
             Utils.showToast('Please enter a diagnosis.', 'warning');
@@ -161,12 +241,14 @@ export function renderConsultationForm(container, params = {}) {
         const consultationData = {
             appointmentId: params.appointmentId || '',
             userId: params.userId || '',
+            chiefComplaint,
             diagnosis,
             prescriptions,
             recommendations,
             notes: recommendations,
             requiresFollowUp,
-            followUpDate: followUpDateStr ? firebase.firestore.Timestamp.fromDate(new Date(followUpDateStr)) : null
+            followUpDate: followUpDateStr ? firebase.firestore.Timestamp.fromDate(new Date(followUpDateStr)) : null,
+            year: new Date().getFullYear()
         };
 
         const result = await ConsultationService.create(consultationData);
@@ -191,7 +273,7 @@ export function renderConsultationForm(container, params = {}) {
                 await NotificationService.create({
                     type: 'consultation',
                     title: 'Consultation Complete',
-                    message: `Your consultation has been completed. Diagnosis: ${diagnosis}. ${requiresFollowUp ? 'A follow-up checkup has been scheduled.' : ''} Visit the Recovery page for details.`,
+                    message: `Your consultation has been completed. Diagnosis: ${diagnosis}. ${requiresFollowUp ? 'A follow-up checkup has been scheduled.' : ''} Visit the My Records page for full details.`,
                     targetRole: 'student',
                     targetUserId: params.userId,
                     relatedId: result.id,

@@ -52,8 +52,8 @@ export async function renderClinicQueue(container) {
         // Load user profiles for any new UIDs
         const newUids = appointments.map(a => a.userId).filter(uid => uid && !userCache[uid]);
         if (newUids.length > 0) {
-            const newUsers = await AuthService.getUsersByIds(newUids);
-            userCache = { ...userCache, ...newUsers };
+            const newUsersResult = await AuthService.getUsersByIds(newUids);
+            userCache = { ...userCache, ...(newUsersResult.data || {}) };
         }
 
         const severityColorMap = {

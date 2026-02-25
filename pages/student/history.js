@@ -79,7 +79,20 @@ export async function renderStudentHistory(container) {
                 </div>
             `;
         }
-
+        // ── Consultation Records ─────────────────────────────────
+        if (consultations.length > 0) {
+            html += `
+                <div style="margin-bottom: 24px;">
+                    <div class="section-header" style="display:flex; align-items:center; gap:6px;">
+                        <span class="material-icons-round" style="font-size:16px; color:var(--color-primary);">medical_services</span>
+                        MY CONSULTATION RECORDS
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:12px;">
+                        ${consultations.map(c => renderConsultationRecord(c)).join('')}
+                    </div>
+                </div>
+            `;
+        }
         // â”€â”€ Transaction History â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (logs.length === 0 && followUps.length === 0) {
             html += `
@@ -309,6 +322,67 @@ function renderHistoryCard(log, aptByLogId, consultByAptId) {
                 <span style="font-size:var(--font-size-xs); font-weight:600; color:${statusColor}; text-align:right;">${statusLabel}</span>
                 <span style="font-size:var(--font-size-xs); color:var(--color-text-hint); text-align:right;">${(log.triageResult?.category || 'minor').toUpperCase()}</span>
             </div>
+        </div>
+    `;
+}
+
+/* ── Student Consultation Record Card ──────────────────────── */
+function renderConsultationRecord(c) {
+    const date = c.date?.toDate ? c.date.toDate() : new Date(c.date || Date.now());
+    const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const prescriptions = c.prescriptions || [];
+
+    return `
+        <div class="card card--elevated" style="padding: 16px 18px; border-left: 4px solid var(--color-primary);">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; flex-wrap:wrap; gap:6px;">
+                <div style="font-size:var(--font-size-xs); font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--color-primary);">
+                    <span class="material-icons-round" style="font-size:14px; vertical-align:middle;">medical_services</span>
+                    Clinic Consultation
+                </div>
+                <div style="font-size:var(--font-size-xs); color:var(--color-text-hint);">${dateStr}</div>
+            </div>
+
+            ${c.chiefComplaint ? `
+                <div style="margin-bottom:10px;">
+                    <div style="font-size:var(--font-size-xs); font-weight:600; color:var(--color-text-hint); text-transform:uppercase; margin-bottom:3px;">Chief Complaint</div>
+                    <div style="font-size:var(--font-size-sm); font-style:italic;">${c.chiefComplaint}</div>
+                </div>
+            ` : ''}
+
+            <div style="margin-bottom:10px;">
+                <div style="font-size:var(--font-size-xs); font-weight:600; color:var(--color-text-hint); text-transform:uppercase; margin-bottom:3px;">Diagnosis</div>
+                <div style="font-size:var(--font-size-sm); font-weight:600;">${c.diagnosis || 'N/A'}</div>
+            </div>
+
+            ${prescriptions.length > 0 ? `
+                <div style="margin-bottom:10px; background:var(--color-background); border-radius:8px; padding:10px;">
+                    <div style="font-size:var(--font-size-xs); font-weight:600; color:var(--color-primary); text-transform:uppercase; margin-bottom:6px;">
+                        <span class="material-icons-round" style="font-size:13px; vertical-align:middle;">medication</span>
+                        Prescribed Medicines
+                    </div>
+                    ${prescriptions.map(p => `
+                        <div style="font-size:var(--font-size-sm); padding:2px 0;">
+                            <strong>${p.medicine}</strong>${p.dosage ? ` — ${p.dosage}` : ''}
+                            ${p.frequencyLabel ? `<span style="color:var(--color-primary); font-size:var(--font-size-xs);"> · ${p.frequencyLabel}</span>` : ''}
+                            ${p.instructions ? `<br><span style="color:var(--color-text-secondary); font-size:var(--font-size-xs);">${p.instructions}</span>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            ` : ''}
+
+            ${c.recommendations ? `
+                <div style="margin-bottom:10px;">
+                    <div style="font-size:var(--font-size-xs); font-weight:600; color:var(--color-text-hint); text-transform:uppercase; margin-bottom:3px;">Treatment Notes</div>
+                    <div style="font-size:var(--font-size-sm); color:var(--color-text-secondary);">${c.recommendations}</div>
+                </div>
+            ` : ''}
+
+            ${c.requiresFollowUp ? `
+                <div style="display:flex; align-items:center; gap:6px; margin-top:8px; padding-top:8px; border-top:1px solid var(--color-border);">
+                    <span class="material-icons-round" style="font-size:14px; color:var(--color-moderate);">event_repeat</span>
+                    <span style="font-size:var(--font-size-xs); color:var(--color-moderate); font-weight:600;">Follow-up required</span>
+                </div>
+            ` : ''}
         </div>
     `;
 }

@@ -22,7 +22,7 @@ export async function renderClinicRecords(container) {
                 <!-- Search / Filter bar -->
                 <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
                     <input type="text" id="records-search" class="input-field"
-                        placeholder="Search by name, diagnosis..."
+                        placeholder="Search by name, diagnosis, complaint..."
                         style="flex: 1; min-width: 200px;">
                     <select id="records-filter" class="input-field" style="width: 160px;">
                         <option value="">All Severity</option>
@@ -30,6 +30,17 @@ export async function renderClinicRecords(container) {
                         <option value="severe">Severe</option>
                         <option value="moderate">Moderate</option>
                         <option value="minor">Minor</option>
+                    </select>
+                    <select id="records-year" class="input-field" style="width: 120px;">
+                        <option value="">All Years</option>
+                        ${(function() {
+                            const currentYear = new Date().getFullYear();
+                            let opts = '';
+                            for (let y = currentYear; y >= currentYear - 5; y--) {
+                                opts += `<option value="${y}"${y === currentYear ? ' selected' : ''}>${y}</option>`;
+                            }
+                            return opts;
+                        })()}
                     </select>
                 </div>
 
@@ -73,7 +84,8 @@ export async function renderClinicRecords(container) {
 
         // Batch load all unique user IDs
         const userIds = [...new Set(consultations.map(c => c.userId).filter(Boolean))];
-        const userMap = await AuthService.getUsersByIds(userIds);
+        const userMapResult = await AuthService.getUsersByIds(userIds);
+        const userMap = userMapResult.data || {};
 
         // Store for filtering
         let allRecords = consultations.map(c => ({
@@ -128,6 +140,13 @@ export async function renderClinicRecords(container) {
                                 </div>
                             </div>
 
+                            ${c.chiefComplaint ? `
+                                <div style="margin-bottom: 10px;">
+                                    <div style="font-size: var(--font-size-xs); font-weight: 600; color: var(--color-text-hint); text-transform: uppercase; margin-bottom: 4px;">Chief Complaint</div>
+                                    <div style="font-size: var(--font-size-sm); font-style: italic;">${c.chiefComplaint}</div>
+                                </div>
+                            ` : ''}
+
                             <div style="margin-bottom: 10px;">
                                 <div style="font-size: var(--font-size-xs); font-weight: 600; color: var(--color-text-hint); text-transform: uppercase; margin-bottom: 4px;">Diagnosis</div>
                                 <div style="font-size: var(--font-size-sm);">${c.diagnosis || 'N/A'}</div>
@@ -152,7 +171,7 @@ export async function renderClinicRecords(container) {
 
                             ${c.recommendations ? `
                                 <div style="margin-bottom: 10px;">
-                                    <div style="font-size: var(--font-size-xs); font-weight: 600; color: var(--color-text-hint); text-transform: uppercase; margin-bottom: 4px;">Recommendations</div>
+                                    <div style="font-size: var(--font-size-xs); font-weight: 600; color: var(--color-text-hint); text-transform: uppercase; margin-bottom: 4px;">Treatment Notes</div>
                                     <div style="font-size: var(--font-size-sm); color: var(--color-text-secondary);">${c.recommendations}</div>
                                 </div>
                             ` : ''}
@@ -180,25 +199,33 @@ export async function renderClinicRecords(container) {
             `;
         }
 
-        // Initial render
-        renderRecords(allRecords);
+        // Year filter: derive year from record's date field for records missing the year property
+        function getRecordYear(c) {
+            if (c.year) return c.year;
+            if (c.date?.toDate) return c.date.toDate().getFullYear();
+            if (c.date) return new Date(c.date).getFullYear();
+            return new Date().getFullYear();
+        }
 
-        // Search + filter
         function applyFilters() {
             const searchTerm = document.getElementById('records-search')?.value.toLowerCase().trim() || '';
             const severityFilter = document.getElementById('records-filter')?.value || '';
+            const yearFilter = parseInt(document.getElementById('records-year')?.value) || 0;
 
             const filtered = allRecords.filter(({ consultation: c, appointment: apt, user }) => {
                 const name = user?.profile
                     ? `${user.profile.firstName || ''} ${user.profile.lastName || ''}`.toLowerCase()
                     : '';
                 const diagnosis = (c.diagnosis || '').toLowerCase();
+                const complaint = (c.chiefComplaint || '').toLowerCase();
                 const matchesSearch = !searchTerm ||
                     name.includes(searchTerm) ||
                     diagnosis.includes(searchTerm) ||
+                    complaint.includes(searchTerm) ||
                     (user?.profile?.studentId || '').toLowerCase().includes(searchTerm);
                 const matchesSeverity = !severityFilter || (apt?.severity || 'minor') === severityFilter;
-                return matchesSearch && matchesSeverity;
+                const matchesYear = !yearFilter || getRecordYear(c) === yearFilter;
+                return matchesSearch && matchesSeverity && matchesYear;
             });
 
             renderRecords(filtered);
@@ -206,6 +233,10 @@ export async function renderClinicRecords(container) {
 
         document.getElementById('records-search')?.addEventListener('input', applyFilters);
         document.getElementById('records-filter')?.addEventListener('change', applyFilters);
+        document.getElementById('records-year')?.addEventListener('change', applyFilters);
+
+        // Default: show current year only
+        applyFilters();
 
     } catch (error) {
         console.error(error);

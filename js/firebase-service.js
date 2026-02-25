@@ -355,6 +355,8 @@ const ConsultationService = {
                 userId: consultationData.userId,
                 clinicStaffId: auth.currentUser.uid,
                 date: firebase.firestore.FieldValue.serverTimestamp(),
+                year: consultationData.year || new Date().getFullYear(),
+                chiefComplaint: consultationData.chiefComplaint || '',
                 diagnosis: consultationData.diagnosis || '',
                 prescriptions: consultationData.prescriptions || [],
                 recommendations: consultationData.recommendations || '',
