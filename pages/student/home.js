@@ -7,7 +7,7 @@ const COMMON_SYMPTOMS = [
     'Headache', 'Fever', 'Cough', 'Sore Throat', 'Runny Nose',
     'Stomach Pain', 'Dizziness', 'Body Ache', 'Vomiting', 'Diarrhea',
     'Rash', 'Sore Eyes', 'Sneezing', 'Tired', 'Difficulty Breathing',
-    'Chest Pain', 'High Fever', 'Allergic Reaction'
+    'Chest Pain', 'Allergic Reaction'
 ];
 
 export function renderStudentHome(container) {
