@@ -62,6 +62,7 @@ export async function renderClinicNotifications(container) {
             'follow_up_request': 'healing',
             'follow_up_confirmed': 'event_available',
             'emergency_alert': 'warning',
+            'emergency_response': 'local_hospital',
             'recovery_complete': 'verified',
             'general': 'notifications'
         };

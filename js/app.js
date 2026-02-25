@@ -447,10 +447,11 @@ const GlobalEmergencyAlert = {
             const building = loc.building || 'Unknown Building';
             const room = loc.room || 'Unknown Room';
             const ts = em.timestamp ? Utils.formatTime(em.timestamp) : '';
-            const statusLabel = em.status === 'responding' ? '🟡 Responding' : '🔴 Active';
+            const isResponding = em.status === 'responding';
+            const statusLabel = isResponding ? '🟡 Responding' : '🔴 Active';
 
             html += `
-                <div class="ems-card" data-id="${em.id}">
+                <div class="ems-card" data-id="${em.id}" data-user-id="${em.userId || ''}">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
                         <h3>🧑‍🎓 ${name}</h3>
                         <span style="font-size:0.8rem; opacity:0.75;">${statusLabel}</span>
@@ -462,8 +463,8 @@ const GlobalEmergencyAlert = {
                     </div>
                     <div class="ems-actions">
                         <button class="ems-btn ems-btn--respond" data-action="respond" data-id="${em.id}"
-                            ${em.status === 'responding' ? 'disabled style="opacity:0.5;"' : ''}>
-                            ✅ RESPOND
+                            ${isResponding ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
+                            ${isResponding ? '🟡 RESPONDING...' : '✅ RESPOND'}
                         </button>
                         <button class="ems-btn ems-btn--resolve" data-action="resolve" data-id="${em.id}">
                             ✔ RESOLVE
@@ -485,14 +486,16 @@ const GlobalEmergencyAlert = {
         // Button handlers
         overlay.addEventListener('click', async (e) => {
             const btn = e.target.closest('[data-action]');
-            if (!btn) return;
+            if (!btn || btn.disabled) return;
             const action = btn.dataset.action;
             const id = btn.dataset.id;
+            const card = btn.closest('.ems-card');
+            const studentUserId = card?.dataset.userId || null;
             btn.disabled = true;
             btn.style.opacity = '0.5';
             if (action === 'respond') {
-                await EmergencyService.respond(id);
-                Utils.showToast('Marked as responding.', 'info');
+                await EmergencyService.respond(id, studentUserId);
+                Utils.showToast('✅ Responding — student has been notified.', 'info');
             } else if (action === 'resolve') {
                 await EmergencyService.resolve(id);
                 Utils.showToast('Emergency resolved.', 'success');
@@ -556,11 +559,61 @@ async function checkFollowUpReminders() {
     } catch (e) {}
 }
 
+// ---- Student Real-Time Notification Listener ----
+const StudentNotificationListener = {
+    _unsubscribe: null,
+    _seenIds: new Set(),
+
+    init() {
+        AuthService.onAuthStateChanged(async (user) => {
+            if (user) {
+                const result = await AuthService.getUserData(user.uid);
+                if (result.data?.role === 'student') {
+                    this._startListener(user.uid);
+                } else {
+                    this._stop();
+                }
+            } else {
+                this._stop();
+            }
+        });
+    },
+
+    _startListener(uid) {
+        if (this._unsubscribe) return;
+        // Listen for new unread notifications targeted at this student
+        this._unsubscribe = NotificationService.listenForUnread(uid, (newNotifs) => {
+            newNotifs.forEach(notif => {
+                if (this._seenIds.has(notif.id)) return;
+                this._seenIds.add(notif.id);
+                // Only toast notifications that arrived within the last 10 seconds
+                const createdAt = notif.createdAt?.toMillis?.() || 0;
+                if (Date.now() - createdAt > 10000) return;
+                if (notif.type === 'emergency_response') {
+                    Utils.showToast('🚑 ' + (notif.title || 'Clinic is responding!'), 'success');
+                } else {
+                    Utils.showToast(notif.title || 'New notification', 'info');
+                }
+                if (window._updateNotifBadge) window._updateNotifBadge();
+            });
+        });
+    },
+
+    _stop() {
+        if (this._unsubscribe) {
+            this._unsubscribe();
+            this._unsubscribe = null;
+        }
+        this._seenIds.clear();
+    }
+};
+
 // ---- Initialize App ----
 document.addEventListener('DOMContentLoaded', () => {
     Auth.init();
     Router.init();
     GlobalEmergencyAlert.init();
+    StudentNotificationListener.init();
     // Seed sections collection in Firestore (runs once, skips if already seeded)
     SectionsService.seed();
 

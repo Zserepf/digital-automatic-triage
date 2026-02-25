@@ -435,23 +435,35 @@ const EmergencyService = {
         }
     },
 
-    // Listen for active emergencies (clinic)
+    // Listen for active/responding emergencies (clinic)
     onEmergencyAlert(callback) {
         return db.collection('emergencies')
-            .where('status', '==', 'active')
+            .where('status', 'in', ['active', 'responding'])
             .onSnapshot(snapshot => {
                 const emergencies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 callback(emergencies);
             });
     },
 
-    // Respond to emergency
-    async respond(emergencyId) {
+    // Respond to emergency — updates status and notifies the student
+    async respond(emergencyId, studentUserId = null) {
         try {
             await db.collection('emergencies').doc(emergencyId).update({
                 status: 'responding',
-                respondedBy: auth.currentUser.uid
+                respondedBy: auth.currentUser.uid,
+                respondedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
+            // Send in-app notification to the student so they know help is coming
+            if (studentUserId) {
+                await NotificationService.create({
+                    type: 'emergency_response',
+                    title: '🚑 Clinic is On the Way!',
+                    message: 'The clinic staff has received your SOS alert and is now responding. Help is on the way — please stay calm and remain at your location.',
+                    targetUserId: studentUserId,
+                    relatedId: emergencyId,
+                    severity: 'urgent'
+                });
+            }
             return { success: true };
         } catch (error) {
             return { success: false, error: error.message };
@@ -653,6 +665,19 @@ const NotificationService = {
         } catch (error) {
             return 0;
         }
+    },
+
+    // Real-time listener for new unread notifications targeted at a specific user
+    listenForUnread(uid, callback) {
+        return db.collection('notifications')
+            .where('targetUserId', '==', uid)
+            .where('read', '==', false)
+            .onSnapshot(snapshot => {
+                const added = snapshot.docChanges()
+                    .filter(c => c.type === 'added')
+                    .map(c => ({ id: c.doc.id, ...c.doc.data() }));
+                if (added.length > 0) callback(added);
+            });
     },
 
     // Mark a notification as read

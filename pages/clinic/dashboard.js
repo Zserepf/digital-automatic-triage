@@ -119,27 +119,42 @@ export async function renderClinicDashboard(container) {
     // Load recovery trend analytics
     loadRecoveryTrends();
 
-    // Listen for emergency alerts
+    // Listen for emergency alerts (active + responding)
     EmergencyService.onEmergencyAlert((emergencies) => {
         const banner = document.getElementById('emergency-banner');
+        // Show banner for active emergencies only (responding ones are already handled)
+        const activeOnly = emergencies.filter(e => e.status === 'active');
         if (emergencies.length > 0) {
             const latest = emergencies[0];
+            const isResponding = latest.status === 'responding';
             banner.classList.remove('hidden');
             document.getElementById('emergency-student-info').innerHTML =
                 `<b>${latest.studentInfo?.name || 'Unknown'}</b> &nbsp;|&nbsp; ${latest.studentInfo?.section || 'N/A'}` +
                 (latest.location?.building ? ` &nbsp;|&nbsp; 📍 ${latest.location.building}` : '') +
                 (latest.location?.room ? ` — ${latest.location.room}` : '');
 
-            document.getElementById('respond-emergency-btn').onclick = async () => {
-                await EmergencyService.respond(latest.id);
-                Utils.showToast('Responding to emergency...', 'info');
-            };
+            const respondBtn = document.getElementById('respond-emergency-btn');
+            if (isResponding) {
+                respondBtn.textContent = '🟡 RESPONDING...';
+                respondBtn.disabled = true;
+                respondBtn.style.opacity = '0.6';
+            } else {
+                respondBtn.textContent = 'RESPOND';
+                respondBtn.disabled = false;
+                respondBtn.style.opacity = '';
+                respondBtn.onclick = async () => {
+                    await EmergencyService.respond(latest.id, latest.userId);
+                    Utils.showToast('✅ Responding — student has been notified.', 'info');
+                };
+            }
 
             // Play alert sound if available
-            try {
-                const audio = new Audio('/assets/sounds/emergency-alert.mp3');
-                audio.play().catch(() => {});
-            } catch (e) {}
+            if (!isResponding) {
+                try {
+                    const audio = new Audio('/assets/sounds/emergency-alert.mp3');
+                    audio.play().catch(() => {});
+                } catch (e) {}
+            }
         } else {
             banner.classList.add('hidden');
         }

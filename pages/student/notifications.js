@@ -67,6 +67,7 @@ export async function renderStudentNotifications(container) {
             'follow_up_request': 'event',
             'follow_up_confirmed': 'event_available',
             'follow_up_instructions': 'message',
+            'emergency_response': 'local_hospital',
             'recovery_complete': 'verified',
             'general': 'notifications'
         };
