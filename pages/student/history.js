@@ -1,4 +1,4 @@
-/* ========================================
+﻿/* ========================================
    STUDENT HISTORY PAGE
    Digital Automatic Triage
    ======================================== */
@@ -65,7 +65,7 @@ export async function renderStudentHistory(container) {
 
         let html = '';
 
-        // ── Upcoming Follow-Up Reminders ─────────────────────
+        // â”€â”€ Upcoming Follow-Up Reminders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (upcomingFollowUps.length > 0) {
             html += `
                 <div style="margin-bottom: 20px;">
@@ -80,7 +80,7 @@ export async function renderStudentHistory(container) {
             `;
         }
 
-        // ── Transaction History ───────────────────────────────
+        // â”€â”€ Transaction History â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (logs.length === 0 && followUps.length === 0) {
             html += `
                 <div style="text-align:center; padding:48px 0; color:var(--color-text-hint);">
@@ -144,7 +144,7 @@ export async function renderStudentHistory(container) {
     }
 }
 
-/* ── Follow-Up Reminder Card (upcoming) ────────────────── */
+/* â”€â”€ Follow-Up Reminder Card (upcoming) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function renderFollowUpReminder(fu) {
     const scheduledDate = fu.scheduledDate
         ? (fu.scheduledDate.toDate ? fu.scheduledDate.toDate() : new Date(fu.scheduledDate))
@@ -160,7 +160,7 @@ function renderFollowUpReminder(fu) {
                          diffDays !== null && diffDays <= 3 ? '#fff8e1' : '#e3f2fd';
 
     const urgencyText = diffDays !== null
-        ? (diffDays === 0 ? '⚠ Today!' : diffDays === 1 ? '⚠ Tomorrow!' : `In ${diffDays} day${diffDays !== 1 ? 's' : ''}`)
+        ? (diffDays === 0 ? 'âš  Today!' : diffDays === 1 ? 'âš  Tomorrow!' : `In ${diffDays} day${diffDays !== 1 ? 's' : ''}`)
         : '';
 
     const statusColor = fu.status === 'confirmed' ? 'var(--color-normal)' : 'var(--color-moderate)';
@@ -184,7 +184,7 @@ function renderFollowUpReminder(fu) {
                 <div style="font-size:0.88rem; color:var(--color-text-secondary); margin-bottom:4px;">
                     <span class="material-icons-round" style="font-size:14px; vertical-align:middle; margin-right:2px;">calendar_today</span>
                     ${scheduledDate ? Utils.formatDate(scheduledDate) : 'Date TBD'}
-                    ${urgencyText ? `&nbsp;·&nbsp;<strong style="color:${urgencyColor};">${urgencyText}</strong>` : ''}
+                    ${urgencyText ? `&nbsp;Â·&nbsp;<strong style="color:${urgencyColor};">${urgencyText}</strong>` : ''}
                 </div>
                 ${fu.clinicInstructions ? `
                     <div style="background:white; border-radius:8px; padding:8px 10px; font-size:0.82rem; color:var(--color-text-secondary); margin-top:6px; border-left:3px solid var(--color-primary);">
@@ -196,7 +196,7 @@ function renderFollowUpReminder(fu) {
     `;
 }
 
-/* ── Follow-Up History Card (past) ─────────────────────── */
+/* â”€â”€ Follow-Up History Card (past) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function renderFollowUpHistoryCard(fu) {
     const scheduledDate = fu.scheduledDate
         ? (fu.scheduledDate.toDate ? fu.scheduledDate.toDate() : new Date(fu.scheduledDate))
@@ -220,7 +220,7 @@ function renderFollowUpHistoryCard(fu) {
                 <div style="font-size:var(--font-size-sm); color:var(--color-text-secondary); margin-bottom:4px;">
                     ${survey.completed
                         ? `Feeling: <strong style="color:${feelingColors[fScale]}">${feelingLabels[fScale] || 'Level '+fScale}</strong>
-                           &nbsp;·&nbsp; Symptoms resolved: <strong>${survey.symptomsResolved ? 'Yes' : 'No'}</strong>`
+                           &nbsp;Â·&nbsp; Symptoms resolved: <strong>${survey.symptomsResolved ? 'Yes' : 'No'}</strong>`
                         : 'Recovery survey not yet submitted'}
                 </div>
                 ${survey.additionalNotes ? `<div style="font-size:var(--font-size-sm); color:var(--color-text-hint); font-style:italic;">"${survey.additionalNotes}"</div>` : ''}
@@ -290,7 +290,7 @@ function renderHistoryCard(log, aptByLogId, consultByAptId) {
                         </div>
                         ${prescriptions.map(p => `
                             <div style="font-size:var(--font-size-sm); padding:2px 0;">
-                                <strong>${p.medicine}</strong>${p.dosage ? ` — ${p.dosage}` : ''}
+                                <strong>${p.medicine}</strong>${p.dosage ? ` â€” ${p.dosage}` : ''}
                                 ${p.instructions ? `<br><span style="color:var(--color-text-secondary); font-size:var(--font-size-xs);">${p.instructions}</span>` : ''}
                             </div>
                         `).join('')}
@@ -301,7 +301,7 @@ function renderHistoryCard(log, aptByLogId, consultByAptId) {
                 ` : ''}
                 ${severity === 'severe' || severity === 'emergency' ? `
                     <div style="font-size:var(--font-size-xs); color:var(--color-emergency); margin-top:4px; font-weight:600;">
-                        ⚠ ${severity.toUpperCase()} case
+                        âš  ${severity.toUpperCase()} case
                     </div>
                 ` : ''}
             </div>
@@ -415,86 +415,3 @@ function renderHistoryCard(log, aptByLogId, consultByAptId) {
     }
 }
 
-function renderHistoryCard(log, aptByLogId, consultByAptId) {
-    const date = log.timestamp?.toDate ? log.timestamp.toDate() : new Date(log.timestamp);
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = date.toLocaleString('en-US', { month: 'short' }).toUpperCase();
-
-    // Properly link: log → appointment → consultation
-    const appointment = aptByLogId[log.id];
-    const consultation = appointment ? consultByAptId[appointment.id] : null;
-
-    const hasConsultation = !!consultation;
-    const diagnosis = hasConsultation
-        ? consultation.diagnosis
-        : `Symptoms: ${(log.symptoms || []).join(', ')}`;
-
-    const prescriptions = consultation?.prescriptions || [];
-    const severity = log.triageResult?.category || 'minor';
-    const status = appointment?.status || log.status || 'pending';
-
-    const statusLabel = {
-        'waiting': 'Waiting',
-        'in_progress': 'In Progress',
-        'completed': 'Completed',
-        'pending': 'Pending'
-    }[status] || status;
-
-    const statusColor = {
-        'waiting': 'var(--color-moderate)',
-        'in_progress': 'var(--color-severe)',
-        'completed': 'var(--color-normal)',
-        'pending': 'var(--color-text-hint)'
-    }[status] || 'var(--color-text-hint)';
-
-    return `
-        <div class="history-card" style="cursor: default;">
-            <div class="history-card-date">
-                <div class="day">${day}</div>
-                <div class="month">${month}</div>
-            </div>
-            <div class="history-card-body" style="flex: 1;">
-                <div class="history-card-diagnosis" style="font-weight: 600; margin-bottom: 4px;">
-                    ${hasConsultation ? 'Diagnosis' : 'Triage Submitted'}
-                </div>
-                <div class="history-card-info" style="margin-bottom: 6px;">
-                    ${diagnosis}
-                </div>
-                ${prescriptions.length > 0 ? `
-                    <div style="margin-top: 6px; padding: 8px; background: #f0f7ff; border-radius: 8px;">
-                        <div style="font-size: var(--font-size-xs); font-weight: 600; color: var(--color-primary); margin-bottom: 4px;">
-                            <span class="material-icons-round" style="font-size: 14px; vertical-align: middle;">medication</span>
-                            PRESCRIPTIONS
-                        </div>
-                        ${prescriptions.map(p => `
-                            <div style="font-size: var(--font-size-sm); color: var(--color-text-primary); padding: 2px 0;">
-                                <strong>${p.medicine}</strong>${p.dosage ? ` — ${p.dosage}` : ''}
-                                ${p.instructions ? `<br><span style="color: var(--color-text-secondary); font-size: var(--font-size-xs);">${p.instructions}</span>` : ''}
-                            </div>
-                        `).join('')}
-                    </div>
-                ` : hasConsultation ? `
-                    <div style="font-size: var(--font-size-sm); color: var(--color-text-hint); margin-top: 4px;">No prescriptions given</div>
-                ` : ''}
-                ${consultation?.recommendations ? `
-                    <div style="font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-top: 6px;">
-                        <em>${consultation.recommendations}</em>
-                    </div>
-                ` : ''}
-                ${severity === 'severe' || severity === 'emergency' ? `
-                    <div style="font-size: var(--font-size-xs); color: var(--color-emergency); margin-top: 4px; font-weight: 600;">
-                        ⚠ ${severity.toUpperCase()} case
-                    </div>
-                ` : ''}
-            </div>
-            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px; min-width: 80px;">
-                <span style="font-size: var(--font-size-xs); font-weight: 600; color: ${statusColor}; text-align: right;">
-                    ${statusLabel}
-                </span>
-                <span style="font-size: var(--font-size-xs); color: var(--color-text-hint); text-align: right;">
-                    ${(log.triageResult?.category || 'minor').toUpperCase()}
-                </span>
-            </div>
-        </div>
-    `;
-}
