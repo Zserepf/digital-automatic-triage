@@ -367,3 +367,95 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ---- Dark Mode ---- */
+body.dark-mode .clinic-sidebar {
+    background: #1a1a2e;
+    border-right-color: #2a2a3e;
+}
+
+body.dark-mode .clinic-sidebar-nav a {
+    color: #a0a0b0;
+}
+
+body.dark-mode .clinic-sidebar-nav a:hover,
+body.dark-mode .clinic-sidebar-nav a.active {
+    background: #2a2a3e;
+    color: #e0e0e0;
+}
+
+body.dark-mode .clinic-content {
+    background: #16213e;
+}
+
+body.dark-mode .clinic-mobile-topbar {
+    background: #1a1a2e;
+    border-bottom-color: #2a2a3e;
+}
+
+body.dark-mode .stat-card {
+    background: #1e1e3a;
+}
+
+body.dark-mode .queue-table {
+    background: #1e1e3a;
+}
+
+body.dark-mode .queue-table th {
+    background: #16213e;
+    color: #a0a0b0;
+    border-bottom-color: #2a2a3e;
+}
+
+body.dark-mode .queue-table td {
+    border-bottom-color: #2a2a3e;
+    color: #e0e0e0;
+}
+
+body.dark-mode .queue-table tr:hover td {
+    background: #2a2a3e;
+}
+
+body.dark-mode .queue-card {
+    background: #1e1e3a;
+    border-color: #2a2a3e;
+}
+
+body.dark-mode .patient-view-header {
+    background: #1e1e3a;
+    border-color: #2a2a3e;
+}
+
+body.dark-mode .consultation-form {
+    background: #1e1e3a;
+}
+
+body.dark-mode .prescription-entry {
+    background: #16213e;
+    border-color: #2a2a3e;
+}
+
+body.dark-mode .analytics-card {
+    background: #1e1e3a;
+}
+
+body.dark-mode .notification-item {
+    background: #1e1e3a;
+    border-color: #2a2a3e;
+}
+
+body.dark-mode .notification-item.unread {
+    background: #1a2a3e;
+}
+
+body.dark-mode summary {
+    background: #1e1e3a;
+}
+
+body.dark-mode details {
+    background: #1e1e3a;
+}
+
+body.dark-mode .profile-info-item {
+    border-bottom-color: #2a2a3e;
+}

@@ -305,3 +305,32 @@ body.dark-mode .modal {
 body.dark-mode .profile-card {
     background: linear-gradient(135deg, #1e3a5f, #0f2040);
 }
+
+body.dark-mode .input-field {
+    background: #2a2a3e;
+    color: #e0e0e0;
+    border-color: #3a3a4e;
+}
+
+body.dark-mode .input-field::placeholder {
+    color: #707080;
+}
+
+body.dark-mode .input-group label {
+    color: #a0a0b0;
+}
+
+body.dark-mode details,
+body.dark-mode summary {
+    background: #1e1e3a;
+    color: #e0e0e0;
+}
+
+body.dark-mode .section-header {
+    color: #707080;
+}
+
+body.dark-mode h1, body.dark-mode h2,
+body.dark-mode h3, body.dark-mode h4 {
+    color: #e0e0e0;
+}

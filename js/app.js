@@ -558,11 +558,6 @@ async function checkFollowUpReminders() {
 
 // ---- Initialize App ----
 document.addEventListener('DOMContentLoaded', () => {
-    // Apply dark mode from localStorage
-    if (localStorage.getItem('dat_dark_mode') === '1') {
-        document.body.classList.add('dark-mode');
-    }
-
     Auth.init();
     Router.init();
     GlobalEmergencyAlert.init();

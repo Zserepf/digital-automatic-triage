@@ -15,11 +15,20 @@ const Auth = {
                 const result = await AuthService.getUserData(user.uid);
                 if (result.success) {
                     this.userData = result.data;
+                    // Apply per-user dark mode preference
+                    const darkKey = 'dat_dark_mode_' + user.uid;
+                    if (localStorage.getItem(darkKey) === '1') {
+                        document.body.classList.add('dark-mode');
+                    } else {
+                        document.body.classList.remove('dark-mode');
+                    }
                     this._redirectBasedOnRole();
                 }
             } else {
                 this.currentUser = null;
                 this.userData = null;
+                // Always clear dark mode on logout so it doesn't bleed to next user
+                document.body.classList.remove('dark-mode');
                 // Redirect to login if not on auth pages
                 const authPages = ['/login', '/register', '/forgot-password', '/register-staff'];
                 if (!authPages.includes(Router.currentRoute)) {

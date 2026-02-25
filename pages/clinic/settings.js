@@ -45,6 +45,30 @@ export function renderClinicSettings(container) {
                         </div>
                     </div>
 
+                    <!-- Appearance -->
+                    <div class="card mb-lg">
+                        <h3 style="margin-bottom: 16px;">Appearance</h3>
+                        <div class="profile-info-item" style="cursor:pointer;" id="clinic-dark-mode-toggle">
+                            <span style="display:flex; align-items:center; gap:8px; font-size:var(--font-size-base); color:var(--color-text-primary);">
+                                <span class="material-icons-round" style="font-size:20px;">dark_mode</span>
+                                Dark Mode
+                            </span>
+                            <div style="position:relative; width:44px; height:24px;">
+                                <div id="clinic-dark-switch" style="
+                                    width:44px; height:24px; border-radius:12px;
+                                    background:${document.body.classList.contains('dark-mode') ? 'var(--color-primary)' : 'var(--color-border)'};
+                                    transition:background 0.2s; cursor:pointer; position:relative;">
+                                    <div style="
+                                        position:absolute; top:2px;
+                                        left:${document.body.classList.contains('dark-mode') ? '22px' : '2px'};
+                                        width:20px; height:20px; border-radius:50%;
+                                        background:white; box-shadow:0 1px 3px rgba(0,0,0,0.2);
+                                        transition:left 0.2s;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Account -->
                     <div class="card mb-lg">
                         <h3 style="margin-bottom: 16px;">Account</h3>
@@ -72,6 +96,18 @@ export function renderClinicSettings(container) {
     document.getElementById('settings-logout-btn')?.addEventListener('click', async () => {
         await AuthService.logout();
         Router.navigate('/login');
+    });
+
+    // Clinic dark mode toggle
+    document.getElementById('clinic-dark-mode-toggle')?.addEventListener('click', () => {
+        const isDark = document.body.classList.toggle('dark-mode');
+        const darkKey = 'dat_dark_mode_' + auth.currentUser.uid;
+        localStorage.setItem(darkKey, isDark ? '1' : '0');
+        const sw = document.getElementById('clinic-dark-switch');
+        if (sw) {
+            sw.style.background = isDark ? 'var(--color-primary)' : 'var(--color-border)';
+            sw.querySelector('div').style.left = isDark ? '22px' : '2px';
+        }
     });
 
     // Save settings

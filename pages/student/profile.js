@@ -169,7 +169,8 @@ export function renderStudentProfile(container) {
     // Dark mode toggle
     document.getElementById('dark-mode-toggle')?.addEventListener('click', () => {
         const isDark = document.body.classList.toggle('dark-mode');
-        localStorage.setItem('dat_dark_mode', isDark ? '1' : '0');
+        const darkKey = 'dat_dark_mode_' + auth.currentUser.uid;
+        localStorage.setItem(darkKey, isDark ? '1' : '0');
         const sw = document.getElementById('dark-mode-switch');
         if (sw) {
             sw.style.background = isDark ? 'var(--color-primary)' : 'var(--color-border)';
