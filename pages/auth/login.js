@@ -8,6 +8,7 @@ export function renderLoginPage(container) {
         <div class="auth-page">
             <div class="auth-card">
                 <div class="auth-header">
+                    <img src="/assets/icons/SCT LOGO.png" class="auth-logo" alt="SCT Logo">
                     <h1>Digital Automatic Triage</h1>
                     <p>Student Wellness Monitoring</p>
                 </div>
@@ -76,7 +77,7 @@ function addAuthStyles() {
             align-items: center;
             justify-content: center;
             padding: var(--space-base);
-            background: linear-gradient(135deg, #2196F3 0%, #1565C0 100%);
+            background: linear-gradient(160deg, #a31d32 0%, #6b1020 100%);
         }
 
         .auth-card {
@@ -86,6 +87,15 @@ function addAuthStyles() {
             width: 100%;
             max-width: 400px;
             box-shadow: var(--shadow-xl);
+        }
+
+        .auth-logo {
+            width: 88px;
+            height: 88px;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto var(--space-md);
+            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.12));
         }
 
         .auth-header {

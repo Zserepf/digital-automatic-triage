@@ -5,9 +5,13 @@
 
 :root {
     /* ---- Primary Colors ---- */
-    --color-primary: #2196F3;
-    --color-primary-dark: #1976D2;
-    --color-primary-light: #BBDEFB;
+    --color-primary: #a31d32;
+    --color-primary-dark: #7d1526;
+    --color-primary-light: #fce8eb;
+
+    /* ---- Brand Accent ---- */
+    --color-gold: #f6d118;
+    --color-gold-dark: #d4b200;
 
     /* ---- Severity Colors ---- */
     --color-normal: #4CAF50;

@@ -690,7 +690,7 @@ function addAuthStyles() {
             align-items: center;
             justify-content: center;
             padding: var(--space-base);
-            background: linear-gradient(135deg, #2196F3 0%, #1565C0 100%);
+            background: linear-gradient(160deg, #a31d32 0%, #6b1020 100%);
         }
         .auth-card {
             background: var(--color-white);

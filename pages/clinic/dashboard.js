@@ -422,8 +422,13 @@ function getClinicSidebar(activePage) {
     return `
         <aside class="sidebar" id="clinic-sidebar">
             <div class="sidebar-brand">
-                <h2>DAT</h2>
-                <span>Clinic Portal</span>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <img src="/assets/icons/SCT LOGO.png" style="width: 38px; height: 38px; object-fit: contain; flex-shrink: 0;" alt="SCT Logo">
+                    <div>
+                        <h2 style="line-height:1.2;">DAT</h2>
+                        <span>Clinic Portal</span>
+                    </div>
+                </div>
             </div>
             <nav class="sidebar-nav">
                 <a class="sidebar-item ${activePage === 'dashboard' ? 'active' : ''}" data-route="/clinic/dashboard">
