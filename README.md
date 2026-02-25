@@ -5,7 +5,7 @@
 
   **Student Wellness Monitoring and Automatic Triage System**
 
-  *Sienna College of Taytay — School Clinic Portal*
+  *Siena College of Taytay — School Clinic Portal*
 
   [![Live App](https://img.shields.io/badge/Live%20App-digital--automatic--triage.web.app-a31d32?style=for-the-badge&logo=firebase)](https://digital-automatic-triage.web.app)
   [![Firebase](https://img.shields.io/badge/Firebase-Firestore%20%7C%20Auth%20%7C%20Hosting-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com)
@@ -17,7 +17,7 @@
 
 ## 📖 Overview
 
-**Digital Automatic Triage (DAT)** is a Progressive Web App developed for the school clinic of **Sienna College of Taytay**. It addresses the common problem of clinic manpower shortage by automating simple triage — filtering minor cases automatically while ensuring severe and emergency cases receive immediate attention.
+**Digital Automatic Triage (DAT)** is a Progressive Web App developed for the school clinic of **Siena College of Taytay**. It addresses the common problem of clinic manpower shortage by automating simple triage — filtering minor cases automatically while ensuring severe and emergency cases receive immediate attention.
 
 Students can log symptoms from any device, receive instant triage results, and book appointments automatically. Clinic staff get a real-time dashboard, queue management system, and emergency alert notifications — all without installing a native app.
 
@@ -300,12 +300,12 @@ firebase deploy
 
 ## 🏫 About
 
-Developed for the **School Clinic of Sienna College of Taytay (SCT)** as a capstone project to modernize student health monitoring and automate frontline triage, reducing the burden on clinic staff while improving response time for emergencies.
+Developed for the **School Clinic of Siena College of Taytay (SCT)** as a capstone project to modernize student health monitoring and automate frontline triage, reducing the burden on clinic staff while improving response time for emergencies.
 
 ---
 
 <div align="center">
-  <sub>Built with ❤️ for Sienna College of Taytay</sub>
+  <sub>Built with ❤️ for Siena College of Taytay</sub>
 </div>
 
 
