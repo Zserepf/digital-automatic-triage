@@ -300,12 +300,12 @@ firebase deploy
 
 ## 🏫 About
 
-Developed for the **School Clinic of St. Louis de Montfort College (SCT)** as a capstone project to modernize student health monitoring and automate frontline triage, reducing the burden on clinic staff while improving response time for emergencies.
+Developed for the **School Clinic of Sienna College of Taytay (SCT)** as a capstone project to modernize student health monitoring and automate frontline triage, reducing the burden on clinic staff while improving response time for emergencies.
 
 ---
 
 <div align="center">
-  <sub>Built with ❤️ for St. Louis de Montfort College</sub>
+  <sub>Built with ❤️ for Sienna College of Taytay</sub>
 </div>
 
 
